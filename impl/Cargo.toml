@@ -1,0 +1,21 @@
+[package]
+name = "packetize_derive"
+version.workspace = true  
+edition.workspace = true
+author.workspace = true 
+description.workspace = true
+repository.workspace = true 
+license.workspace = true
+readme = "../README.md"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.36"
+syn = { version = "2.0.68", features = ["full"] }
+proc-macro2 = "1.0.86"
