@@ -1,0 +1,17 @@
+name: benchmark
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  benchmark:
+    name: Performance check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run benchmark
+        run: |
+          cargo bench
+ 
