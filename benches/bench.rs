@@ -1,3 +1,5 @@
+#![feature(const_mut_refs)]
+
 use std::hint::black_box;
 
 use criterion::Criterion;
@@ -10,32 +12,27 @@ use fast_collections::{Cursor, String};
 use packetize::Encode;
 
 fn criterion_bench(c: &mut Criterion) {
-    let mut value = MyComponent {
-        value: 14,
-        value2: String::from_array(unsafe {
-            fast_collections::const_transmute_unchecked::<[u8; 5], [u8; 10000]>(*b"ABCDE")
-        }),
-    };
-    *unsafe { value.value2.as_vec_mut().len_mut() } = 5;
     let mut group = c.benchmark_group("Ts");
     group.throughput(criterion::Throughput::Elements(1000));
-    let mut write_cursor = Cursor::<u8, U1000000>::new();
     group.bench_function("Test", |b| {
         b.iter(|| {
+            let mut write_cursor = Cursor::<u8, U1000000>::new();
             let value = const {
-                MyComponent {
+                let mut value = MyComponent {
                     value: 14,
                     value2: String::from_array(unsafe {
                         fast_collections::const_transmute_unchecked::<[u8; 5], [u8; 10000]>(
                             *b"ABCDE",
                         )
                     }),
-                }
+                };
+                *unsafe { value.value2.as_vec_mut().len_mut() } = 5;
+                value
             };
-
-            unsafe { value.encode_unchecked(&mut write_cursor) };
-            black_box(write_cursor.get_transmute::<u8>(0));
-            write_cursor.clear();
+            black_box(value);
+            //unsafe { value.encode_unchecked(&mut write_cursor) };
+            //black_box(write_cursor.get_transmute::<u8>(0));
+            //write_cursor.clear();
         });
     });
 }
