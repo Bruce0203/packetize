@@ -1,29 +1,67 @@
-#![feature(generic_const_exprs)]
-
 use std::hint::black_box;
 
 use criterion::Criterion;
 use fast_collections::{
     generic_array::ArrayLength,
-    typenum::{Integer, Len, U100},
+    typenum::{Len, U10000, U1000000},
+    Clear, GetTransmute,
 };
-use fast_collections::{typenum::Unsigned, Cursor, PushTransmuteUnchecked, String};
+use fast_collections::{Cursor, String};
+use packetize::Encode;
 
 fn criterion_bench(c: &mut Criterion) {
-    c.bench_function("Test", |b| {
+    let mut value = MyComponent {
+        value: 14,
+        value2: String::from_array(unsafe {
+            fast_collections::const_transmute_unchecked::<[u8; 5], [u8; 10000]>(*b"ABCDE")
+        }),
+    };
+    *unsafe { value.value2.as_vec_mut().len_mut() } = 5;
+    let mut group = c.benchmark_group("Ts");
+    group.throughput(criterion::Throughput::Elements(1000));
+    let mut write_cursor = Cursor::<u8, U1000000>::new();
+    group.bench_function("Test", |b| {
         b.iter(|| {
-            #[inline(always)]
-            fn a<T: Len>()
-            where
-                [(); { <T as Len>::Output::USIZE / 8 + 1 }]:,
-            {
-                let len = [0u8; { <T as Len>::Output::USIZE / 8 + 1 }];
-                black_box(len);
-            }
-            a::<U100>();
+            let value = const {
+                MyComponent {
+                    value: 14,
+                    value2: String::from_array(unsafe {
+                        fast_collections::const_transmute_unchecked::<[u8; 5], [u8; 10000]>(
+                            *b"ABCDE",
+                        )
+                    }),
+                }
+            };
+
+            unsafe { value.encode_unchecked(&mut write_cursor) };
+            black_box(write_cursor.get_transmute::<u8>(0));
+            write_cursor.clear();
         });
     });
 }
 
 criterion::criterion_main!(benches);
 criterion::criterion_group!(benches, criterion_bench);
+
+pub struct MyComponent {
+    value: u8,
+    value2: String<U10000>,
+}
+impl<N> Encode<N> for MyComponent
+where
+    N: ArrayLength + Len,
+{
+    fn encode(self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<(), ()> {
+        //FIXME use unchecked_add rather than add_assign
+        //if core::mem::size_of::<MyComponent>() + write_cursor.pos() < N::USIZE {
+        self.value.encode(write_cursor)?;
+        self.value2.encode(write_cursor)?;
+        Ok(())
+    }
+
+    #[inline(always)]
+    unsafe fn encode_unchecked(self, write_cursor: &mut fast_collections::Cursor<u8, N>) {
+        self.value.encode_unchecked(write_cursor);
+        self.value2.encode_unchecked(write_cursor);
+    }
+}

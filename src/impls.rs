@@ -10,22 +10,23 @@ macro_rules! impl_encoder_and_decoder {
         impl<N> Encode<N> for $name
             where N: ArrayLength + Len,
         {
+            #[inline(always)]
             fn encode(
-                &self,
+                self,
                 write_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<(), ()>
             {
-                write_cursor.push_transmute(&self)?;
+                write_cursor.push_transmute(self)?;
                 Ok(())
             }
 
+            #[inline(always)]
             unsafe fn encode_unchecked(
-                &self,
+                self,
                 write_cursor: &mut fast_collections::Cursor<u8, N>,
-            ) -> Result<(), ()>
+            )
             {
-                write_cursor.push_transmute_unchecked(*self);
-                Ok(())
+                write_cursor.push_transmute_unchecked(self);
             }
         }
         )*

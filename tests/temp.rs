@@ -7,18 +7,19 @@ use packetize::{Encode, SizedEncode};
 
 #[test]
 fn test() {
-    let value = MyComponent {
-        value: 123,
-        value2: String::from_array(*b"bruce"),
+    let mut value = MyComponent {
+        value: 14,
+        value2: String::from_array(*b"ABCDE     "),
     };
+    *unsafe { value.value2.as_vec_mut().len_mut() } = 5;
     let mut write_cursor = Cursor::<u8, U100>::new();
-    value.encode(&mut write_cursor).unwrap();
+    unsafe { value.encode_unchecked(&mut write_cursor) };
     println!("{:?}", write_cursor.filled());
 }
 
 pub struct MyComponent {
-    value: u32,
-    value2: String<U5>,
+    value: u8,
+    value2: String<U10>,
 }
 
 impl SizedEncode for MyComponent {}
@@ -27,21 +28,16 @@ impl<N> Encode<N> for MyComponent
 where
     N: ArrayLength + Len,
 {
-    fn encode(&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<(), ()> {
+    fn encode(self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<(), ()> {
         //FIXME use unchecked_add rather than add_assign
         //if core::mem::size_of::<MyComponent>() + write_cursor.pos() < N::USIZE {
-
         self.value.encode(write_cursor)?;
         self.value2.encode(write_cursor)?;
         Ok(())
     }
 
-    unsafe fn encode_unchecked(
-        &self,
-        write_cursor: &mut fast_collections::Cursor<u8, N>,
-    ) -> Result<(), ()> {
-        self.value.encode_unchecked(write_cursor)?;
-        self.value2.encode_unchecked(write_cursor)?;
-        Ok(())
+    unsafe fn encode_unchecked(self, write_cursor: &mut fast_collections::Cursor<u8, N>) {
+        self.value.encode_unchecked(write_cursor);
+        self.value2.encode_unchecked(write_cursor);
     }
 }
