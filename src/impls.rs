@@ -1,6 +1,4 @@
-use fast_collections::{
-    generic_array::ArrayLength, typenum::Len, PushTransmute, PushTransmuteUnchecked,
-};
+use fast_collections::{generic_array::ArrayLength, PushTransmute};
 
 use crate::Encode;
 
@@ -8,25 +6,16 @@ macro_rules! impl_encoder_and_decoder {
     ($($name:ident),*) => {
         $(
         impl<N> Encode<N> for $name
-            where N: ArrayLength + Len,
+            where N: ArrayLength,
         {
             #[inline(always)]
             fn encode(
-                self,
+                &self,
                 write_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<(), ()>
             {
-                write_cursor.push_transmute(self)?;
+                write_cursor.push_transmute(*self)?;
                 Ok(())
-            }
-
-            #[inline(always)]
-            unsafe fn encode_unchecked(
-                self,
-                write_cursor: &mut fast_collections::Cursor<u8, N>,
-            )
-            {
-                write_cursor.push_transmute_unchecked(self);
             }
         }
         )*
