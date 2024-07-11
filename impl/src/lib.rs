@@ -16,7 +16,7 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
                 }
 
                 impl<N: fast_collections::generic_array::ArrayLength> packetize::Decode<N> for #item_name {
-                    fn decode(read_cursor: &mut Cursor<u8, N>) -> core::result::Result<Self, ()> {
+                    fn decode(read_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<Self, ()> {
                         fast_collections::CursorReadTransmute::read_transmute(read_cursor)
                             .map(|v| *v)
                             .ok_or_else(|| ())
