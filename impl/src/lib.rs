@@ -29,29 +29,26 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
             let has_field_name = item_struct.fields.iter().last().map(|field| field.ident.is_some());
             let decode_constructor = generate_decoder(&item_struct, has_field_name);
             let encode_constructor = generate_encoder(&item_struct, has_field_name);
-            let result = quote! {
-                            impl<N: fast_collections::generic_array::ArrayLength> packetize::Decode<N> for #item_name
-                            where
-                                [(); N::USIZE]:,
-                            {
-                                fn decode(read_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<Self, ()> {
-                                    Ok(#decode_constructor)
-                                }
-                            }
+            quote! {
+               impl<N: fast_collections::generic_array::ArrayLength> packetize::Decode<N> for #item_name
+               where
+                   [(); N::USIZE]:,
+               {
+                   fn decode(read_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<Self, ()> {
+                       Ok(#decode_constructor)
+                   }
+               }
 
-                            impl<N: fast_collections::generic_array::ArrayLength> packetize::Encode<N> for #item_name
-                            where
-                                [(); N::USIZE]:,
-                            {
-                                fn encode(&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<(), ()> {
-                                    #encode_constructor
-                                    Ok(())
-                                }
-                            }
-
-                        };
-            println!("{}", result.to_token_stream().to_string());
-            result
+               impl<N: fast_collections::generic_array::ArrayLength> packetize::Encode<N> for #item_name
+               where
+                   [(); N::USIZE]:,
+               {
+                   fn encode(&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<(), ()> {
+                       #encode_constructor
+                       Ok(())
+                   }
+               }
+            }
         },
         _ => panic!("unimplemented item type"),
     }
