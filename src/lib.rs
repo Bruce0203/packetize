@@ -1,21 +1,21 @@
 #![feature(generic_const_exprs)]
 
+use ::fast_collections::{generic_array::ArrayLength, Cursor};
 pub use packetize_derive::*;
 
-pub mod fast_collections;
 pub mod impls;
 
 pub trait Encode<N>
 where
-    N: ::fast_collections::generic_array::ArrayLength,
+    N: ArrayLength,
 {
-    fn encode(&self, write_cursor: &mut ::fast_collections::Cursor<u8, N>) -> Result<(), ()>;
+    fn encode(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>;
 }
 
 pub trait Decode<N>
 where
     Self: Sized,
-    N: ::fast_collections::generic_array::ArrayLength,
+    N: ArrayLength,
 {
-    fn decode(read_cursor: &mut ::fast_collections::Cursor<u8, N>) -> Result<Self, ()>;
+    fn decode(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()>;
 }
