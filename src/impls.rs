@@ -1,6 +1,6 @@
-use fast_collections::{generic_array::ArrayLength, PushTransmute};
+use fast_collections::{generic_array::ArrayLength, CursorReadTransmute, PushTransmute};
 
-use crate::Encode;
+use crate::{Decode, Encode};
 
 macro_rules! impl_encoder_and_decoder {
     ($($name:ident),*) => {
@@ -16,6 +16,17 @@ macro_rules! impl_encoder_and_decoder {
             {
                 write_cursor.push_transmute(*self)?;
                 Ok(())
+            }
+        }
+
+        impl<N> Decode<N> for $name
+        where
+            N: ArrayLength,
+        {
+            fn decode(read_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<Self, ()> {
+                CursorReadTransmute::read_transmute(read_cursor)
+                    .map(|v| *v)
+                    .ok_or_else(|| ())
             }
         }
         )*

@@ -376,6 +376,16 @@ dependencies = [
  "criterion",
  "fast_collections",
  "integer-encoding",
+ "packetize_derive",
+]
+
+[[package]]
+name = "packetize_derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

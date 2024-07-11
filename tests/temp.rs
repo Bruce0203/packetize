@@ -1,11 +1,14 @@
 #![feature(generic_const_exprs)]
 
+use std::fmt::write;
+
 use fast_collections::{
     generic_array::ArrayLength,
     typenum::{Len, U10, U100, U5},
-    Cursor, String,
+    Cursor, CursorReadTransmute, PushTransmute, PushTransmuteUnchecked, String,
 };
 use packetize::{Decode, Encode};
+use packetize_derive::Packetize;
 
 #[test]
 fn test() {
@@ -21,23 +24,48 @@ fn test() {
     println!("{:?}", cursor.filled());
     let decoded: String<U100> = Decode::decode(&mut cursor).unwrap();
     assert_eq!(value.value2.len(), decoded.len());
+
+    {
+        #[repr(u8)]
+        #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
+        enum TestEnum {
+            VALUE1,
+            VALUE2,
+        }
+
+        impl<N: ArrayLength> Encode<N> for TestEnum {
+            fn encode(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+                PushTransmute::push_transmute(write_cursor, Clone::clone(self))
+            }
+        }
+
+        impl<N: ArrayLength> Decode<N> for TestEnum {
+            fn decode(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+                CursorReadTransmute::read_transmute(read_cursor)
+                    .map(|v| *v)
+                    .ok_or_else(|| ())
+            }
+        }
+        let mut cursor: Cursor<u8, U100> = Cursor::new();
+        TestEnum::VALUE1.encode(&mut cursor).unwrap();
+        assert_eq!(
+            cursor.read_transmute::<TestEnum>().unwrap(),
+            &TestEnum::VALUE1
+        );
+        assert_eq!(cursor.filled_len(), cursor.pos());
+        TestEnum::VALUE2.encode(&mut cursor).unwrap();
+        assert_eq!(TestEnum::decode(&mut cursor).unwrap(), TestEnum::VALUE2);
+    }
 }
 
+#[derive(Packetize)]
 pub struct MyComponent {
     value: u8,
     value2: String<U100>,
 }
 
-impl<N> Encode<N> for MyComponent
-where
-    N: ArrayLength,
-    [(); N::USIZE]:,
-{
-    fn encode(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
-        //FIXME use unchecked_add rather than add_assign
-        //if core::mem::size_of::<MyComponent>() + write_cursor.pos() < N::USIZE {
-        self.value.encode(write_cursor)?;
-        self.value2.encode(write_cursor)?;
-        Ok(())
-    }
+struct A;
+
+fn a() {
+    let a = A {};
 }

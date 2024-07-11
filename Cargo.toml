@@ -22,11 +22,12 @@ license = "MIT"
 
 
 [workspace]
-freedy_derive = { path = "./impl", version = "0.1.0" }
+members = ["impl"]
 
 [dependencies]
 fast_collections = "0.35.0"
 integer-encoding = "4.0.0"
+packetize_derive = { path = "./impl" }
 
 [[bench]]
 name = "bench"
