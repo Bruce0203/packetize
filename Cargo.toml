@@ -17,10 +17,10 @@ members = ["impl"]
 
 [workspace.package]
 version = "0.1.0"
-description = "Quickly and efficiently encode and decode your struct with minimal size"
+description = "Efficiently encode and decode your struct"
 edition = "2021"
 author = "Bruce0203 <brucefreedy@gmail.com>"
-repository = "https://github.com/Bruce0203/freedy"
+repository = "https://github.com/Bruce0203/packetize"
 license = "MIT"
 
 [dependencies]
