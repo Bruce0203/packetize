@@ -4,7 +4,7 @@ use std::fmt::write;
 
 use fast_collections::{
     generic_array::ArrayLength,
-    typenum::{Len, U10, U100, U1000, U5},
+    typenum::{Len, U10, U100, U1000, U4, U5},
     Cursor, CursorReadTransmute, PushTransmute, PushTransmuteUnchecked, String,
 };
 use packetize::{Decode, Encode};
@@ -14,18 +14,14 @@ use packetize_derive::Packetize;
 fn test() {
     let mut value = MyComponent {
         value: 14,
-        value2: unsafe {
-            fast_collections::const_transmute_unchecked(String::<U10>::from_array(*b"ABCDE     "))
-        },
         value3: String::from_array(*b"123"),
         value4: 123,
     };
-    *unsafe { value.value2.as_vec_mut().len_mut() } = 5;
     let mut cursor = Cursor::<u8, U100>::new();
-    value.value2.encode(&mut cursor).unwrap();
+    value.value3.encode(&mut cursor).unwrap();
     println!("{:?}", cursor.filled());
     let decoded: String<U100> = Decode::decode(&mut cursor).unwrap();
-    assert_eq!(value.value2.len(), decoded.len());
+    assert_eq!(value.value3.len(), decoded.len());
 
     {
         #[repr(u8)]
@@ -65,8 +61,7 @@ fn test() {
         let mut cursor: Cursor<u8, U1000> = Cursor::new();
         MyComponent {
             value: 123,
-            value2: String::from_array(*b"ABCD"),
-            value3: String::from_array(*b"A"),
+            value3: String::from_array(*b"ABCA"),
             value4: 42,
         }
         .encode(&mut cursor)
@@ -80,10 +75,9 @@ fn test() {
 
 #[derive(Packetize)]
 pub struct MyComponent {
-    value: u8,
-    value2: String<U100>,
-    value3: String<U100>,
-    value4: u8,
+    value: u16,
+    value3: String<U4>,
+    value4: u16,
 }
 
 struct A;
