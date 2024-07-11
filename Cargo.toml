@@ -12,6 +12,9 @@ include = [
     "Cargo.toml",
 ]
 
+[workspace]
+members = ["impl"]
+
 [workspace.package]
 version = "0.1.0"
 description = "Quickly and efficiently encode and decode your struct with minimal size"
@@ -20,14 +23,10 @@ author = "Bruce0203 <brucefreedy@gmail.com>"
 repository = "https://github.com/Bruce0203/freedy"
 license = "MIT"
 
-
-[workspace]
-members = ["impl"]
-
 [dependencies]
+packetize_derive = { path = "./impl", version = "0.1.0" }
 fast_collections = "0.35.0"
 integer-encoding = "4.0.0"
-packetize_derive = { path = "./impl" }
 
 [[bench]]
 name = "bench"
