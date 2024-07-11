@@ -5,8 +5,9 @@
 
 use ::fast_collections::{generic_array::ArrayLength, Cursor};
 
-mod fast_collections;
+pub use packetize_derive::*;
 
+mod fast_collections;
 mod impls;
 
 pub trait Encode<N>
