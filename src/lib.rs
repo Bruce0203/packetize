@@ -1,3 +1,4 @@
+#![feature(generic_arg_infer)]
 #![feature(generic_const_exprs)]
 
 use fast_collections::{generic_array::ArrayLength, Cursor};

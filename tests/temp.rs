@@ -57,7 +57,6 @@ fn test() {
 
     {
         println!("asdf");
-        println!("{}", String::<U100>::from_array(*b"123").len());
         let mut cursor: Cursor<u8, U1000> = Cursor::new();
         MyComponent {
             value: 123,
@@ -66,7 +65,6 @@ fn test() {
         }
         .encode(&mut cursor)
         .unwrap();
-        println!("{:?}", cursor.filled());
         let component = MyComponent::decode(&mut cursor).unwrap();
         assert_eq!(component.value, 123);
         assert_eq!(component.value4, 42);
