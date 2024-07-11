@@ -60,10 +60,14 @@ where
         unsafe {
             let encoded_len =
                 integer_encoding::VarInt::encode_var(len, write_cursor.unfilled_mut());
+            if encoded_len == 0 {
+                return Err(());
+            }
             let filled_len_mut = write_cursor.filled_len_mut();
-            let filled_len_1 = (*filled_len_mut).unchecked_add(encoded_len);
+            let filled_len_0 = *filled_len_mut;
+            let filled_len_1 = filled_len_0.unchecked_add(encoded_len);
             let filled_len_2 = filled_len_1.unchecked_add(len);
-            if filled_len_2 >= CursorLen::USIZE {
+            if encoded_len + len >= CursorLen::USIZE - filled_len_0 {
                 return Err(());
             }
             *filled_len_mut = filled_len_2;
