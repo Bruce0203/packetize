@@ -16,7 +16,7 @@ include = [
 members = ["impl"]
 
 [workspace.package]
-version = "0.3.0"
+version = "0.4.0"
 description = "Efficiently encode and decode your struct"
 edition = "2021"
 author = "Bruce0203 <brucefreedy@gmail.com>"
@@ -24,7 +24,7 @@ repository = "https://github.com/Bruce0203/packetize"
 license = "MIT"
 
 [dependencies]
-packetize_derive = { path = "./impl", version = "0.3.0" }
+packetize_derive = { path = "./impl", version = "0.4.0" }
 fast_collections = "0.37.0"
 integer-encoding = "4.0.0"
 
