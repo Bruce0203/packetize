@@ -1,6 +1,6 @@
 #![feature(generic_const_exprs)]
 
-use ::fast_collections::{generic_array::ArrayLength, Cursor};
+use fast_collections::{generic_array::ArrayLength, Cursor};
 pub use packetize_derive::*;
 
 pub mod impls;
