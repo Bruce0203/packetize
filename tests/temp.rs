@@ -65,12 +65,13 @@ fn test() {
         let mut cursor: Cursor<u8, U1000> = Cursor::new();
         MyComponent {
             value: 123,
-            value2: String::from_array(*b"asdf"),
-            value3: String::from_array(*b""),
+            value2: String::from_array(*b"ABCD"),
+            value3: String::from_array(*b"A"),
             value4: 42,
         }
         .encode(&mut cursor)
         .unwrap();
+        println!("{:?}", cursor.filled());
         let component = MyComponent::decode(&mut cursor).unwrap();
         assert_eq!(component.value, 123);
         assert_eq!(component.value4, 42);
@@ -82,7 +83,7 @@ pub struct MyComponent {
     value: u8,
     value2: String<U100>,
     value3: String<U100>,
-    value4: u16,
+    value4: u8,
 }
 
 struct A;

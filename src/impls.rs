@@ -86,12 +86,13 @@ where
 {
     fn decode(read_cursor: &mut Cursor<u8, CursorLen>) -> Result<Self, ()> {
         let mut vec = Vec::<u8, VecLen>::uninit();
-        let filled = read_cursor.filled();
+        let pos = read_cursor.pos();
+        let filled = &read_cursor.filled()[pos..];
         let (length, read_length) =
             <u32 as integer_encoding::VarInt>::decode_var(filled).ok_or_else(|| ())?;
         let length = length as usize;
         let read_length_plus_length = unsafe { read_length.unchecked_add(length) };
-        let new_pos = read_cursor.pos() + read_length_plus_length;
+        let new_pos = unsafe { pos.unchecked_add(read_length_plus_length) };
         if filled.len() < read_length_plus_length {
             return Err(());
         }
