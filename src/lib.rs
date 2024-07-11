@@ -5,6 +5,8 @@ use fast_collections::{generic_array::ArrayLength, Cursor};
 pub use packetize_derive::*;
 
 pub mod impls;
+#[cfg(feature = "uuid")]
+pub mod uuid;
 
 pub trait Encode<N>
 where
