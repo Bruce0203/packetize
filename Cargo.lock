@@ -180,9 +180,9 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "fast_collections"
-version = "0.39.0"
+version = "0.40.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a757b7fcc3d4b1f1c1bd8707b708d96db9b5d1f4d9725b521baaad156719ffb7"
+checksum = "954fad64f7c2574e0ae38747b3445f5e9000026bceca4d2fdbe73a6c82ee4a35"
 dependencies = [
  "generic-array",
  "typenum",
@@ -307,7 +307,7 @@ checksum = "0ab1bc2a289d34bd04a330323ac98a1b4bc82c9d9fcb1e66b63caa84da26b575"
 
 [[package]]
 name = "packetize"
-version = "0.11.0"
+version = "0.13.0"
 dependencies = [
  "criterion",
  "fast_collections",
@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "packetize_derive"
-version = "0.11.0"
+version = "0.13.0"
 dependencies = [
  "proc-macro2",
  "quote",
