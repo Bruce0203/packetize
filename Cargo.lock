@@ -180,9 +180,9 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "fast_collections"
-version = "0.40.0"
+version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "954fad64f7c2574e0ae38747b3445f5e9000026bceca4d2fdbe73a6c82ee4a35"
+checksum = "c4fed9186dbe20ca9050326201c7c9ccfc69ece3d2e390124d658c38361ca2d2"
 dependencies = [
  "generic-array",
  "typenum",

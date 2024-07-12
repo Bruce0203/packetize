@@ -88,3 +88,29 @@ fn a() {
 
 #[derive(Packetize)]
 pub struct Identifier(String<U5>);
+
+#[cfg(feature = "uuid")]
+#[test]
+fn test_uuid() {
+    use std::hint::black_box;
+
+    use uuid::Uuid;
+
+    #[derive(packetize_derive::Packetize, PartialEq, Eq, PartialOrd, Ord, Debug)]
+    pub struct TestStruct {
+        value: usize,
+        value2: Uuid,
+        value3: usize,
+    }
+    let mut cursor: Cursor<u8, U100> = Cursor::new();
+    let value = TestStruct {
+        value: 123,
+        value2: Uuid::from_u128(123),
+        value3: 123123,
+    };
+    value.encode(&mut cursor).unwrap();
+    println!("{:?}", cursor.filled());
+    let test_struct = TestStruct::decode(&mut cursor).unwrap();
+    assert_eq!(test_struct, value);
+    black_box(cursor);
+}

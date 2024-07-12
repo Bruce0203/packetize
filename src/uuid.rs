@@ -8,7 +8,7 @@ where
     N: ArrayLength,
 {
     fn encode(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
-        write_cursor.push_transmute(self.as_bytes())
+        write_cursor.push_transmute(*self.as_bytes())
     }
 }
 
