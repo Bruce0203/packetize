@@ -82,4 +82,9 @@ struct A;
 
 fn a() {
     let a = A {};
+    let value = Identifier(String::new());
+    let value = value.0;
 }
+
+#[derive(Packetize)]
+pub struct Identifier(String<U5>);

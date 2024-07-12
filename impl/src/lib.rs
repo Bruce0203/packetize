@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, Item, ItemStruct};
+use syn::{parse_macro_input, parse_quote, ExprField, Item, ItemStruct};
 
 #[proc_macro_derive(Packetize)]
 pub fn packetize_derive(input: TokenStream) -> TokenStream {
@@ -102,9 +102,7 @@ fn generate_encoder(
                 #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
             }
         } else {
-            let fields: Vec<_> = (0..item_struct.fields.len())
-                .map(|i| format_ident!("{i}"))
-                .collect();
+            let fields = 0..item_struct.fields.len();
             quote! {
                 #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
             }
