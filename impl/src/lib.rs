@@ -10,13 +10,13 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
             let item_name = &value.ident;
             quote! {
                 impl<N: fast_collections::generic_array::ArrayLength> packetize::Encode<N> for #item_name {
-                    fn encode(&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
+                    fn encode(&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<(), ()> {
                         fast_collections::PushTransmute::push_transmute(write_cursor, Clone::clone(self))
                     }
                 }
 
                 impl<N: fast_collections::generic_array::ArrayLength> packetize::Decode<N> for #item_name {
-                    fn decode(read_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<Self, ()> {
+                    fn decode(read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> {
                         fast_collections::CursorReadTransmute::read_transmute(read_cursor)
                             .map(|v| *v)
                             .ok_or_else(|| ())
@@ -34,7 +34,7 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
                where
                    [(); N::USIZE]:,
                {
-                   fn decode(read_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<Self, ()> {
+                   fn decode(read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<Self, ()> {
                        Ok(#decode_constructor)
                    }
                }
@@ -43,7 +43,7 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
                where
                    [(); N::USIZE]:,
                {
-                   fn encode(&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<(), ()> {
+                   fn encode(&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<(), ()> {
                        #encode_constructor
                        Ok(())
                    }
