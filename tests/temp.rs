@@ -114,3 +114,16 @@ fn test_uuid() {
     assert_eq!(test_struct, value);
     black_box(cursor);
 }
+
+#[test]
+fn asdf() {
+    #[derive(Packetize)]
+    struct A {
+        value: String<U4>,
+    }
+    let a = A {
+        value: String::from_array(*b"123123"),
+    };
+    let mut cursor: Cursor<u8, U100> = Cursor::new();
+    a.encode(&mut cursor).unwrap()
+}
