@@ -10,20 +10,16 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
             let item_name = &value.ident;
             quote! {
                 impl packetize::Encode for #item_name {
-                    fn encode<N: fast_collections::generic_array::ArrayLength>
+                    fn encode<const N: usize>
                         (&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<(), ()> 
-                    where
-                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
                     {
                         fast_collections::PushTransmute::push_transmute(write_cursor, Clone::clone(self))
                     }
                 }
 
                 impl packetize::Decode for #item_name {
-                    fn decode<N: fast_collections::generic_array::ArrayLength>
+                    fn decode<const N: usize>
                         (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> 
-                    where
-                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
                     {
                         fast_collections::CursorReadTransmute::read_transmute(read_cursor)
                             .map(|v| *v)
@@ -40,10 +36,8 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
             quote! {
                impl packetize::Decode for #item_name
                {
-                   fn decode<N: fast_collections::generic_array::ArrayLength>
+                   fn decode<const N: usize>
                        (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<Self, ()>
-                    where 
-                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
                    {
                        Ok(#decode_constructor)
                    }
@@ -51,10 +45,8 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
 
                impl packetize::Encode for #item_name
                {
-                   fn encode<N: fast_collections::generic_array::ArrayLength>
+                   fn encode<const N: usize>
                        (&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<(), ()> 
-                    where
-                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
                    {
                        #encode_constructor
                        Ok(())

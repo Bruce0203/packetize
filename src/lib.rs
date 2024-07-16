@@ -2,7 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use fast_collections::{generic_array::ArrayLength, Cursor};
+use fast_collections::Cursor;
 pub use packetize_derive::*;
 
 pub mod impls;
@@ -10,13 +10,9 @@ pub mod impls;
 pub mod uuid;
 
 pub trait Encode {
-    fn encode<N: ArrayLength>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>
-    where
-        [(); N::USIZE]:;
+    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>;
 }
 
 pub trait Decode: Sized {
-    fn decode<N: ArrayLength>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()>
-    where
-        [(); N::USIZE]:;
+    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()>;
 }
