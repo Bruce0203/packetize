@@ -31,14 +31,20 @@ fn test() {
             VALUE2,
         }
 
-        impl<N: ArrayLength> Encode<N> for TestEnum {
-            fn encode(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        impl Encode for TestEnum {
+            fn encode<N: ArrayLength>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>
+            where
+                [(); N::USIZE]:,
+            {
                 PushTransmute::push_transmute(write_cursor, Clone::clone(self))
             }
         }
 
-        impl<N: ArrayLength> Decode<N> for TestEnum {
-            fn decode(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        impl Decode for TestEnum {
+            fn decode<N: ArrayLength>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()>
+            where
+                [(); N::USIZE]:,
+            {
                 CursorReadTransmute::read_transmute(read_cursor)
                     .map(|v| *v)
                     .ok_or_else(|| ())
@@ -94,6 +100,7 @@ pub struct Identifier(String<U5>);
 fn test_uuid() {
     use std::hint::black_box;
 
+    use fast_collections::typenum::Unsigned;
     use uuid::Uuid;
 
     #[derive(packetize_derive::Packetize, PartialEq, Eq, PartialOrd, Ord, Debug)]

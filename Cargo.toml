@@ -16,7 +16,7 @@ include = [
 members = ["impl"]
 
 [workspace.package]
-version = "0.17.0"
+version = "0.18.0"
 description = "Efficiently encode and decode your struct"
 edition = "2021"
 author = "Bruce0203 <brucefreedy@gmail.com>"

@@ -8,17 +8,14 @@ pub mod impls;
 #[cfg(feature = "uuid")]
 pub mod uuid;
 
-pub trait Encode<N>
-where
-    N: ArrayLength,
-{
-    fn encode(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>;
+pub trait Encode {
+    fn encode<N: ArrayLength>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>
+    where
+        [(); N::USIZE]:;
 }
 
-pub trait Decode<N>
-where
-    Self: Sized,
-    N: ArrayLength,
-{
-    fn decode(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()>;
+pub trait Decode: Sized {
+    fn decode<N: ArrayLength>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()>
+    where
+        [(); N::USIZE]:;
 }

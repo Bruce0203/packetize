@@ -1,6 +1,6 @@
-use proc_macro::{Literal, TokenStream};
-use quote::{format_ident, quote};
-use syn::{parse_macro_input, parse_quote, ExprField, Index, Item, ItemStruct};
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse_macro_input, Index, Item, ItemStruct};
 
 #[proc_macro_derive(Packetize)]
 pub fn packetize_derive(input: TokenStream) -> TokenStream {
@@ -9,14 +9,22 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
         Item::Enum(value) => {
             let item_name = &value.ident;
             quote! {
-                impl<N: fast_collections::generic_array::ArrayLength> packetize::Encode<N> for #item_name {
-                    fn encode(&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<(), ()> {
+                impl packetize::Encode for #item_name {
+                    fn encode<N: fast_collections::generic_array::ArrayLength>
+                        (&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<(), ()> 
+                    where
+                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
+                    {
                         fast_collections::PushTransmute::push_transmute(write_cursor, Clone::clone(self))
                     }
                 }
 
-                impl<N: fast_collections::generic_array::ArrayLength> packetize::Decode<N> for #item_name {
-                    fn decode(read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> {
+                impl packetize::Decode for #item_name {
+                    fn decode<N: fast_collections::generic_array::ArrayLength>
+                        (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> 
+                    where
+                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
+                    {
                         fast_collections::CursorReadTransmute::read_transmute(read_cursor)
                             .map(|v| *v)
                             .ok_or_else(|| ())
@@ -30,20 +38,24 @@ pub fn packetize_derive(input: TokenStream) -> TokenStream {
             let decode_constructor = generate_decoder(&item_struct, has_field_name);
             let encode_constructor = generate_encoder(&item_struct, has_field_name);
             quote! {
-               impl<N: fast_collections::generic_array::ArrayLength> packetize::Decode<N> for #item_name
-               where
-                   [(); N::USIZE]:,
+               impl packetize::Decode for #item_name
                {
-                   fn decode(read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<Self, ()> {
+                   fn decode<N: fast_collections::generic_array::ArrayLength>
+                       (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<Self, ()>
+                    where 
+                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
+                   {
                        Ok(#decode_constructor)
                    }
                }
 
-               impl<N: fast_collections::generic_array::ArrayLength> packetize::Encode<N> for #item_name
-               where
-                   [(); N::USIZE]:,
+               impl packetize::Encode for #item_name
                {
-                   fn encode(&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<(), ()> {
+                   fn encode<N: fast_collections::generic_array::ArrayLength>
+                       (&self, write_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<(), ()> 
+                    where
+                        [(); <N as fast_collections::typenum::Unsigned>::USIZE]:,
+                   {
                        #encode_constructor
                        Ok(())
                    }
@@ -99,12 +111,12 @@ fn generate_encoder(
                 .map(|field| field.ident.clone().unwrap())
                 .collect();
             quote! {
-                #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
+                #(packetize::Encode::encode::<N>(&self.#fields, write_cursor)?;)*
             }
         } else {
             let fields = (0..item_struct.fields.len()).map(|i| Index::from(i));
             quote! {
-                #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
+                #(packetize::Encode::encode::<N>(&self.#fields, write_cursor)?;)*
             }
         }
     } else {
