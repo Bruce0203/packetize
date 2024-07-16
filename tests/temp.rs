@@ -1,18 +1,17 @@
+#![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
-
-use std::fmt::write;
 
 use fast_collections::{
     generic_array::ArrayLength,
-    typenum::{Len, U10, U100, U1000, U4, U5},
-    Cursor, CursorReadTransmute, PushTransmute, PushTransmuteUnchecked, String,
+    typenum::{U100, U1000, U4, U5},
+    Cursor, CursorReadTransmute, PushTransmute, String,
 };
 use packetize::{Decode, Encode};
 use packetize_derive::Packetize;
 
 #[test]
 fn test() {
-    let mut value = MyComponent {
+    let value = MyComponent {
         value: 14,
         value3: String::from_array(*b"123"),
         value4: 123,
@@ -84,14 +83,6 @@ pub struct MyComponent {
     value4: u16,
 }
 
-struct A;
-
-fn a() {
-    let a = A {};
-    let value = Identifier(String::new());
-    let value = value.0;
-}
-
 #[derive(Packetize)]
 pub struct Identifier(String<U5>);
 
@@ -100,7 +91,6 @@ pub struct Identifier(String<U5>);
 fn test_uuid() {
     use std::hint::black_box;
 
-    use fast_collections::typenum::Unsigned;
     use uuid::Uuid;
 
     #[derive(packetize_derive::Packetize, PartialEq, Eq, PartialOrd, Ord, Debug)]

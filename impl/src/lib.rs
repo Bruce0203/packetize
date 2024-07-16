@@ -111,12 +111,12 @@ fn generate_encoder(
                 .map(|field| field.ident.clone().unwrap())
                 .collect();
             quote! {
-                #(packetize::Encode::encode::<N>(&self.#fields, write_cursor)?;)*
+                #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
             }
         } else {
             let fields = (0..item_struct.fields.len()).map(|i| Index::from(i));
             quote! {
-                #(packetize::Encode::encode::<N>(&self.#fields, write_cursor)?;)*
+                #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
             }
         }
     } else {

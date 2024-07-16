@@ -1,4 +1,5 @@
 #![feature(generic_arg_infer)]
+#![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
 use fast_collections::{generic_array::ArrayLength, Cursor};
