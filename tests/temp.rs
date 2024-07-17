@@ -3,7 +3,6 @@
 
 use fast_collections::{Cursor, CursorReadTransmute, PushTransmute, String};
 use packetize::{Decode, Encode};
-use packetize_derive::Packetize;
 
 #[test]
 fn test() {
@@ -66,14 +65,14 @@ fn test() {
     }
 }
 
-#[derive(Packetize)]
+#[derive(Encode, Decode)]
 pub struct MyComponent {
     value: u16,
     value3: String<4>,
     value4: u16,
 }
 
-#[derive(Packetize)]
+#[derive(Encode, Decode)]
 pub struct Identifier(String<5>);
 
 #[cfg(feature = "uuid")]
@@ -83,7 +82,7 @@ fn test_uuid() {
 
     use uuid::Uuid;
 
-    #[derive(packetize_derive::Packetize, PartialEq, Eq, PartialOrd, Ord, Debug)]
+    #[derive(Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Debug)]
     pub struct TestStruct {
         value: usize,
         value2: Uuid,
@@ -104,7 +103,7 @@ fn test_uuid() {
 
 #[test]
 fn asdf() {
-    #[derive(Packetize)]
+    #[derive(Encode, Decode)]
     struct A {
         value: String<4>,
     }

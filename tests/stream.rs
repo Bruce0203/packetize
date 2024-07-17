@@ -10,7 +10,7 @@ mod test {
     use integer_encoding::VarInt;
     use packetize::{
         stream::{Packet, PacketStreamFormat, SimplePacketStreamFormat},
-        streaming_packets, Decode, Encode, Packetize,
+        streaming_packets, Decode, Encode,
     };
 
     #[streaming_packets(SimplePacketStreamFormat)]
@@ -24,28 +24,28 @@ mod test {
         ),
     }
 
-    #[derive(Packetize)]
+    #[derive(Encode, Decode)]
     pub struct HandShakeC2s {
         value: u16,
         value2: String<123>,
     }
 
-    #[derive(Packetize)]
+    #[derive(Encode, Decode)]
     pub struct LoginRequestC2s {
         value: u32,
     }
 
-    #[derive(Packetize)]
+    #[derive(Encode, Decode)]
     pub struct EncryptionRequestC2s {
         value: i32,
     }
 
-    #[derive(Packetize)]
+    #[derive(Encode, Decode)]
     pub struct LoignSuccessS2c {
         value: u32,
     }
 
-    #[derive(Packetize)]
+    #[derive(Encode, Decode)]
     pub struct EncryptionResponseS2c {
         value: i32,
     }

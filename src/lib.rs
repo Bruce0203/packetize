@@ -2,7 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-pub use packetize_derive::Packetize;
+pub use packetize_derive::{Encode, Decode};
 
 pub mod impls;
 #[cfg(feature = "stream")]
