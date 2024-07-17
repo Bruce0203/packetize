@@ -1,6 +1,8 @@
 # packetize
-- Support fast packet encoding, and decoding for network packet.
-- Packet framing feature with macro. 
+- Supports fast packet encoding and decoding for network packets.
+- Features packet framing with macros.
+- Designed for multiple packet formats (e.g., WebSocket, Minecraft, TCP)
+
 
 ```rust
 use fast_collections::Cursor;
