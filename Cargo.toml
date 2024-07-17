@@ -32,6 +32,7 @@ uuid = { version = "1.10.0", features = ["v4"], optional = true }
 [features]
 default = ["uuid"]
 uuid = ["dep:uuid"]
+stream = ["packetize_derive/stream"]
 
 [[bench]]
 name = "bench"

@@ -6,6 +6,8 @@ use fast_collections::Cursor;
 pub use packetize_derive::*;
 
 pub mod impls;
+#[cfg(feature = "stream")]
+pub mod stream;
 #[cfg(feature = "uuid")]
 pub mod uuid;
 

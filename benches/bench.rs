@@ -4,11 +4,7 @@
 use std::hint::black_box;
 
 use criterion::Criterion;
-use fast_collections::{
-    generic_array::ArrayLength,
-    typenum::{bit, Len, U10, U10000, U1000000},
-    Clear, GetTransmute,
-};
+use fast_collections::{Clear, GetTransmute};
 use fast_collections::{Cursor, String};
 use integer_encoding::VarInt;
 use packetize::Encode;
@@ -25,7 +21,7 @@ fn criterion_bench(c: &mut Criterion) {
         *unsafe { value.value2.as_vec_mut().len_mut() } = 5;
         value
     };
-    let write_cursor = &mut Cursor::<u8, U1000000>::new();
+    let write_cursor = &mut Cursor::<u8, 1000000>::new();
     group.bench_function("Test", |b| {
         b.iter(|| {
             unsafe { value.encode(write_cursor) };
@@ -40,15 +36,14 @@ criterion::criterion_group!(benches, criterion_bench);
 
 struct MyComponent {
     value: u8,
-    value2: String<U10000>,
+    value2: String<10000>,
 }
 
-impl<N> Encode<N> for MyComponent
-where
-    N: ArrayLength,
-    [(); N::USIZE]:,
-{
-    fn encode(&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<(), ()> {
+impl Encode for MyComponent {
+    fn encode<const N: usize>(
+        &self,
+        write_cursor: &mut fast_collections::Cursor<u8, N>,
+    ) -> Result<(), ()> {
         self.value.encode(write_cursor)?;
         self.value2.encode(write_cursor)?;
         Ok(())
