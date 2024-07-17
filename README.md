@@ -13,7 +13,7 @@ use packetize::{streaming_packets, Decode, Encode, SimplePacketStreamFormat};
 pub enum PacketStreamState {
     #[default]
     HandShake(#[change_state_to(Login)] HandShakeS2c),
-    Login(LoginRequestS2c),
+    Login(LoginRequestS2c, LoginSuccessC2s),
     //...
 }
 
@@ -24,6 +24,9 @@ pub struct HandShakeS2c {
 
 #[derive(Encode, Decode)]
 pub struct LoginRequestS2c {}
+
+#[derive(Encode, Decode)]
+pub struct LoginSuccessC2s {}
 
 #[test]
 fn test_change_state() {
@@ -40,5 +43,6 @@ fn test_change_state() {
         .unwrap();
     assert_eq!(state, PacketStreamState::Login);
 }
+
 
 ```

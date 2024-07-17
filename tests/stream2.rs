@@ -10,7 +10,7 @@ mod test {
     pub enum PacketStreamState {
         #[default]
         HandShake(#[change_state_to(Login)] HandShakeS2c),
-        Login(LoginRequestS2c),
+        Login(LoginRequestS2c, LoginSuccessC2s),
         //...
     }
 
@@ -21,6 +21,9 @@ mod test {
 
     #[derive(Encode, Decode)]
     pub struct LoginRequestS2c {}
+
+    #[derive(Encode, Decode)]
+    pub struct LoginSuccessC2s {}
 
     #[test]
     fn test_change_state() {
