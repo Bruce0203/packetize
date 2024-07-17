@@ -269,7 +269,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
         state_index += 1;
         if !packets.is_empty() {
             quote! {
-                match #format::read_packet_id::<#packets_name, _>(read_cursor)? {
+                match <#format as packetize::PacketStreamFormat>::read_packet_id::<#packets_name, _>(read_cursor)? {
                     #(
                     #packets_name::#packets => {
                         <#packets as packetize::Decode>::decode(read_cursor)?.into()
@@ -335,7 +335,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                 match packet {
                     #(
                         ServerBoundPacket::#server_bound_packets(p) => {
-                            <#format as PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
+                            <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
                         }
                     )*
                 }
@@ -350,7 +350,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                 match packet {
                     #(
                         ClientBoundPacket::#client_bound_packets(p) => {
-                            <#format as PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
+                            <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
                         }
                     )*
                 }
