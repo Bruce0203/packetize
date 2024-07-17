@@ -30,7 +30,7 @@ fast_collections = "0.49.0"
 uuid = { version = "1.10.0", features = ["v4"], optional = true }
 
 [features]
-default = ["uuid", "stream"]
+default = ["uuid"]
 uuid = ["dep:uuid"]
 stream = ["packetize_derive/stream"]
 
