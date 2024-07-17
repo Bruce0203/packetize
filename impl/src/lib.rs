@@ -301,7 +301,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
         }
 
         impl #state_name {
-            fn decode_server_bound_packet<const N: usize>(
+            #state_vis fn decode_server_bound_packet<const N: usize>(
                 &mut self,
                 read_cursor: &mut Cursor<u8, N>,
             ) -> Result<ServerBoundPacket, ()> {
@@ -314,7 +314,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                 })
             }
 
-            fn decode_client_bound_packet<const N: usize>(
+            #state_vis fn decode_client_bound_packet<const N: usize>(
                 &mut self,
                 read_cursor: &mut Cursor<u8, N>,
             ) -> Result<ClientBoundPacket, ()> {
@@ -327,7 +327,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                 })
             }
 
-            fn encode_server_bound_packet<const N: usize>(
+            #state_vis fn encode_server_bound_packet<const N: usize>(
                 &mut self,
                 packet: &ServerBoundPacket,
                 write_cursor: &mut Cursor<u8, N>,
@@ -342,7 +342,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                 Ok(())
             }
 
-            fn encode_client_bound_packet<const N: usize>(
+            #state_vis fn encode_client_bound_packet<const N: usize>(
                 &mut self,
                 packet: &ClientBoundPacket,
                 write_cursor: &mut Cursor<u8, N>,
