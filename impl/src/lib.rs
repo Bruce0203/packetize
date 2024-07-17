@@ -284,6 +284,29 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
     };
     let c2s_quotes_of_match_case = f(C2s);
     let s2c_quotes_of_match_case = f(S2c);
+    let encode_c2s_packet = if server_bound_packets.is_empty() {None} else {Some(quote! {
+                    match packet {
+                        #(
+                            ServerBoundPacket::#server_bound_packets(p) => {
+                                <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
+                            }
+                        )*
+                    }
+            
+})
+};
+let encode_s2c_packet = if client_bound_packets.is_empty() {None} else {Some(quote! {
+                match packet {
+                    #(
+                        ClientBoundPacket::#client_bound_packets(p) => {
+                            <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
+                        }
+                    )*
+                }
+            
+})
+};
+        
     quote! {
         #[derive(Debug)]
         #state_vis enum #state_name {
@@ -327,35 +350,24 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                 })
             }
 
-            #state_vis fn encode_server_bound_packet<const N: usize>(
-                &mut self,
-                packet: &ServerBoundPacket,
-                write_cursor: &mut fast_collections::Cursor<u8, N>,
-            ) -> Result<(), ()> {
-                match packet {
-                    #(
-                        ServerBoundPacket::#server_bound_packets(p) => {
-                            <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
-                        }
-                    )*
-                }
-                Ok(())
-            }
-
-            #state_vis fn encode_client_bound_packet<const N: usize>(
+#state_vis fn encode_client_bound_packet<const N: usize>(
                 &mut self,
                 packet: &ClientBoundPacket,
                 write_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<(), ()> {
-                match packet {
-                    #(
-                        ClientBoundPacket::#client_bound_packets(p) => {
-                            <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
-                        }
-                    )*
-                }
+            #encode_s2c_packet
                 Ok(())
-            }
+                }
+
+    #state_vis fn encode_server_bound_packet<const N: usize>(
+                    &mut self,
+                    packet: &ServerBoundPacket,
+                    write_cursor: &mut fast_collections::Cursor<u8, N>,
+                ) -> Result<(), ()> {
+            
+            #encode_c2s_packet
+                    Ok(())
+                    }
         }
     }.into()
 }
