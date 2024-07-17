@@ -222,9 +222,10 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                         } else {
                             Some(#c2s_packets_name::#c2s_packets as u32)
                         },
-                        state => unimplemented!(
-                            "There is no id for '{}' packet in {state:?}",
+                        _ => unimplemented!(
+                            "There is no id for '{}' packet in {}",
                             std::any::type_name::<Self>(),
+                            stringify!(#state)
                         ),
                     }
                 }
@@ -244,9 +245,10 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                         } else {
                             Some(#s2c_packets_name::#s2c_packets as u32)
                         },
-                        state => unimplemented!(
-                            "There is no id for '{}' packet in {state:?}",
+                        _ => unimplemented!(
+                            "There is no id for '{}' packet in {}",
                             std::any::type_name::<Self>(),
+                            stringify!(#state)
                         ),
                     }
                 }
@@ -308,7 +310,7 @@ let encode_s2c_packet = if client_bound_packets.is_empty() {None} else {Some(quo
 };
         
     quote! {
-        #[derive(Debug)]
+        #[allow(dead_code)]
         #state_vis enum #state_name {
             #(#states,)*
         }
@@ -328,6 +330,7 @@ let encode_s2c_packet = if client_bound_packets.is_empty() {None} else {Some(quo
                 &mut self,
                 read_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<ServerBoundPacket, ()> {
+                #[allow(unreachable_code)]
                 Ok(match self {
                     #(
                     #state_name::#states => {
@@ -341,6 +344,7 @@ let encode_s2c_packet = if client_bound_packets.is_empty() {None} else {Some(quo
                 &mut self,
                 read_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<ClientBoundPacket, ()> {
+                #[allow(unreachable_code)]
                 Ok(match self {
                     #(
                     #state_name::#states => {
@@ -355,7 +359,8 @@ let encode_s2c_packet = if client_bound_packets.is_empty() {None} else {Some(quo
                 packet: &ClientBoundPacket,
                 write_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<(), ()> {
-            #encode_s2c_packet
+                #[allow(unreachable_code)]
+    #encode_s2c_packet
                 Ok(())
                 }
 
@@ -364,7 +369,7 @@ let encode_s2c_packet = if client_bound_packets.is_empty() {None} else {Some(quo
                     packet: &ServerBoundPacket,
                     write_cursor: &mut fast_collections::Cursor<u8, N>,
                 ) -> Result<(), ()> {
-            
+                #[allow(unreachable_code)]
             #encode_c2s_packet
                     Ok(())
                     }

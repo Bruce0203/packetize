@@ -7,7 +7,7 @@ mod test {
 
     #[streaming_packets(SimplePacketStreamFormat)]
     pub enum PacketStreamState {
-        HandShake(HandShakeS2c),
+        HandShake(#[change_state_to(Login)] HandShakeS2c),
         Login(LoginRequestS2c),
     }
 
@@ -23,6 +23,9 @@ mod test {
         let mut state = PacketStreamState::HandShake;
         state
             .encode_client_bound_packet(&HandShakeS2c {}.into(), &mut cursor)
+            .unwrap();
+        state
+            .encode_client_bound_packet(&LoginRequestS2c {}.into(), &mut cursor)
             .unwrap();
     }
 }
