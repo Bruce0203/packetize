@@ -2,14 +2,20 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use fast_collections::Cursor;
-pub use packetize_derive::*;
+pub use packetize_derive::Packetize;
 
 pub mod impls;
 #[cfg(feature = "stream")]
 pub mod stream;
 #[cfg(feature = "uuid")]
 pub mod uuid;
+#[cfg(feature = "stream")]
+pub use packetize_derive::streaming_packets;
+
+#[cfg(feature = "stream")]
+pub use crate::stream::*;
+
+use fast_collections::Cursor;
 
 pub trait Encode {
     fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>;
