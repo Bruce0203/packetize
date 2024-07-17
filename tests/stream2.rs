@@ -11,25 +11,30 @@ mod test {
         #[default]
         HandShake(#[change_state_to(Login)] HandShakeS2c),
         Login(LoginRequestS2c),
+        //...
     }
 
     #[derive(Encode, Decode)]
-    pub struct HandShakeS2c {}
+    pub struct HandShakeS2c {
+        protocol_version: i32,
+    }
 
     #[derive(Encode, Decode)]
     pub struct LoginRequestS2c {}
 
     #[test]
-    fn asdf() {
-        let mut cursor: Cursor<u8, 100> = Cursor::new();
+    fn test_change_state() {
+        let cursor = &mut Cursor::<u8, 100>::new();
         let mut state = PacketStreamState::HandShake;
         state
-            .encode_client_bound_packet(&HandShakeS2c {}.into(), &mut cursor)
+            .encode_client_bound_packet(
+                &HandShakeS2c {
+                    protocol_version: 123,
+                }
+                .into(),
+                cursor,
+            )
             .unwrap();
         assert_eq!(state, PacketStreamState::Login);
-        state = PacketStreamState::HandShake;
-        state
-            .encode_client_bound_packet(&LoginRequestS2c {}.into(), &mut cursor)
-            .unwrap();
     }
 }

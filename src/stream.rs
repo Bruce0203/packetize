@@ -79,6 +79,7 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
         Ok(())
     }
 }
+
 impl SimplePacketStreamFormat {
     fn write_packet_id<T, P, const N: usize>(
         state: &T,

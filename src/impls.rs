@@ -59,10 +59,10 @@ impl_encoder_and_decoder! {
     f32, f64
 }
 
-impl<const VecLen: usize> Encode for Vec<u8, VecLen> {
-    fn encode<const CursorLen: usize>(
+impl<const VEC_LEN: usize> Encode for Vec<u8, VEC_LEN> {
+    fn encode<const CURSOR_LEN: usize>(
         &self,
-        write_cursor: &mut Cursor<u8, CursorLen>,
+        write_cursor: &mut Cursor<u8, CURSOR_LEN>,
     ) -> Result<(), ()> {
         let len = self.len();
         unsafe {
@@ -75,7 +75,7 @@ impl<const VecLen: usize> Encode for Vec<u8, VecLen> {
             let filled_len_0 = *filled_len_mut;
             let filled_len_1 = filled_len_0.unchecked_add(encoded_len);
             let filled_len_2 = filled_len_1.unchecked_add(len);
-            if encoded_len + len >= CursorLen - filled_len_0 {
+            if encoded_len + len >= CURSOR_LEN - filled_len_0 {
                 return Err(());
             }
             *filled_len_mut = filled_len_2;
@@ -86,9 +86,11 @@ impl<const VecLen: usize> Encode for Vec<u8, VecLen> {
     }
 }
 
-impl<const VecLen: usize> Decode for Vec<u8, VecLen> {
-    fn decode<const CursorLen: usize>(read_cursor: &mut Cursor<u8, CursorLen>) -> Result<Self, ()> {
-        let mut vec = Vec::<u8, VecLen>::uninit();
+impl<const VEC_LEN: usize> Decode for Vec<u8, VEC_LEN> {
+    fn decode<const CURSOR_LEN: usize>(
+        read_cursor: &mut Cursor<u8, CURSOR_LEN>,
+    ) -> Result<Self, ()> {
+        let mut vec = Vec::<u8, VEC_LEN>::uninit();
         let pos = read_cursor.pos();
         let filled = &read_cursor.filled()[pos..];
         let (length, read_length) =
@@ -106,19 +108,21 @@ impl<const VecLen: usize> Decode for Vec<u8, VecLen> {
     }
 }
 
-impl<const StrLen: usize> Encode for String<StrLen> {
-    fn encode<const CursorLen: usize>(
+impl<const STR_LEN: usize> Encode for String<STR_LEN> {
+    fn encode<const CURSOR_LEN: usize>(
         &self,
-        write_cursor: &mut Cursor<u8, CursorLen>,
+        write_cursor: &mut Cursor<u8, CURSOR_LEN>,
     ) -> Result<(), ()> {
-        let vec: &Vec<u8, StrLen> = unsafe { fast_collections::const_transmute_unchecked(self) };
+        let vec: &Vec<u8, STR_LEN> = unsafe { fast_collections::const_transmute_unchecked(self) };
         Encode::encode(vec, write_cursor)
     }
 }
 
-impl<const StrLen: usize> Decode for String<StrLen> {
-    fn decode<const CursorLen: usize>(read_cursor: &mut Cursor<u8, CursorLen>) -> Result<Self, ()> {
-        let vec: Vec<u8, StrLen> = Decode::decode(read_cursor)?;
+impl<const STR_LEN: usize> Decode for String<STR_LEN> {
+    fn decode<const CURSOR_LEN: usize>(
+        read_cursor: &mut Cursor<u8, CURSOR_LEN>,
+    ) -> Result<Self, ()> {
+        let vec: Vec<u8, STR_LEN> = Decode::decode(read_cursor)?;
         Ok(unsafe { fast_collections::const_transmute_unchecked(vec) })
     }
 }

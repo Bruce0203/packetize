@@ -30,11 +30,10 @@ fast_collections = "0.49.0"
 uuid = { version = "1.10.0", features = ["v4"], optional = true }
 
 [features]
-default = ["uuid"]
+default = ["uuid", "stream"]
 uuid = ["dep:uuid"]
 stream = ["packetize_derive/stream"]
-stream_client = []
-stream_server = []
+minecraft = []
 
 [[bench]]
 name = "bench"

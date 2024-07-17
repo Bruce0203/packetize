@@ -6,12 +6,8 @@
 #[cfg(feature = "stream")]
 #[cfg(test)]
 mod test {
-    use fast_collections::{const_transmute_unchecked, Cursor, CursorReadTransmute, Push, String};
-    use integer_encoding::VarInt;
-    use packetize::{
-        stream::{Packet, PacketStreamFormat, SimplePacketStreamFormat},
-        streaming_packets, Decode, Encode,
-    };
+    use fast_collections::{Cursor, String};
+    use packetize::{stream::SimplePacketStreamFormat, streaming_packets, Decode, Encode};
 
     #[streaming_packets(SimplePacketStreamFormat)]
     pub enum PacketStreamState {
