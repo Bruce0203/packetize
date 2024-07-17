@@ -2,18 +2,18 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-pub use packetize_derive::{Encode, Decode};
+pub use packetize_derive::{Decode, Encode};
 
 pub mod impls;
-#[cfg(feature = "stream")]
-pub mod stream;
 #[cfg(feature = "uuid")]
 pub mod uuid;
-#[cfg(feature = "stream")]
-pub use packetize_derive::streaming_packets;
 
 #[cfg(feature = "stream")]
+pub mod stream;
+#[cfg(feature = "stream")]
 pub use crate::stream::*;
+#[cfg(feature = "stream")]
+pub use packetize_derive::streaming_packets;
 
 use fast_collections::Cursor;
 

@@ -16,7 +16,7 @@ include = [
 members = ["impl"]
 
 [workspace.package]
-version = "0.28.0"
+version = "0.29.0"
 description = "Efficiently encode and decode your struct"
 edition = "2021"
 author = "Bruce0203 <brucefreedy@gmail.com>"
@@ -24,13 +24,13 @@ repository = "https://github.com/Bruce0203/packetize"
 license = "MIT"
 
 [dependencies]
-packetize_derive = { path = "./impl", version = "0.28.0" }
+packetize_derive = { path = "./impl", version = "0.29.0" }
 integer-encoding = "4.0.0"
 fast_collections = "0.49.0"
 uuid = { version = "1.10.0", features = ["v4"], optional = true }
 
 [features]
-default = ["uuid", "stream", "stream_client", "stream_server"]
+default = ["uuid"]
 uuid = ["dep:uuid"]
 stream = ["packetize_derive/stream"]
 stream_client = []
