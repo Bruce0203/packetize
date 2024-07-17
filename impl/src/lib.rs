@@ -161,7 +161,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
         }).collect();
         let c2s_packets_enum = if c2s_packets.is_empty() { None } else { Some(quote! {
             #[derive(Default)]
-            enum #c2s_packets_name {
+            #state_vis enum #c2s_packets_name {
                 #[default]
                 #(#c2s_packets,)*
             }
@@ -169,7 +169,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
         }) };
         let s2c_packets_enum = if s2c_packets.is_empty() { None } else { Some(quote! {
             #[derive(Default)]
-            enum #s2c_packets_name {
+            #state_vis enum #s2c_packets_name {
                 #[default]
                 #(#s2c_packets,)*
             }
@@ -214,7 +214,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
 
 
             #(
-            impl Packet<#state_name> for #c2s_packets {
+            impl packetize::Packet<#state_name> for #c2s_packets {
                 fn id(state: &#state_name) -> Option<u32> {
                     match state {
                         #state_name::#state => if std::mem::size_of::<#c2s_packets_name>() == 0 {
@@ -236,7 +236,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
             )*
 
             #(
-            impl Packet<#state_name> for #s2c_packets {
+            impl packetize::Packet<#state_name> for #s2c_packets {
                 fn id(state: &#state_name) -> Option<u32> {
                     match state {
                         #state_name::#state => if std::mem::size_of::<#s2c_packets_name>() == 0 {
@@ -272,7 +272,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
                 match #format::read_packet_id::<#packets_name, _>(read_cursor)? {
                     #(
                     #packets_name::#packets => {
-                        #packets::decode(read_cursor)?.into()
+                        <#packets as packetize::Decode>::decode(read_cursor)?.into()
                     },
                     )*
                 }
@@ -303,7 +303,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
         impl #state_name {
             #state_vis fn decode_server_bound_packet<const N: usize>(
                 &mut self,
-                read_cursor: &mut Cursor<u8, N>,
+                read_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<ServerBoundPacket, ()> {
                 Ok(match self {
                     #(
@@ -316,7 +316,7 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
 
             #state_vis fn decode_client_bound_packet<const N: usize>(
                 &mut self,
-                read_cursor: &mut Cursor<u8, N>,
+                read_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<ClientBoundPacket, ()> {
                 Ok(match self {
                     #(
@@ -330,12 +330,12 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
             #state_vis fn encode_server_bound_packet<const N: usize>(
                 &mut self,
                 packet: &ServerBoundPacket,
-                write_cursor: &mut Cursor<u8, N>,
+                write_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<(), ()> {
                 match packet {
                     #(
                         ServerBoundPacket::#server_bound_packets(p) => {
-                            #format::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
+                            <#format as PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
                         }
                     )*
                 }
@@ -345,12 +345,12 @@ pub fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
             #state_vis fn encode_client_bound_packet<const N: usize>(
                 &mut self,
                 packet: &ClientBoundPacket,
-                write_cursor: &mut Cursor<u8, N>,
+                write_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<(), ()> {
                 match packet {
                     #(
                         ClientBoundPacket::#client_bound_packets(p) => {
-                            #format::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
+                            <#format as PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
                         }
                     )*
                 }
