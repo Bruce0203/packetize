@@ -8,6 +8,35 @@ pub trait Packet<T> {
     fn is_changing_state() -> Option<T>;
 }
 
+pub trait ClientBoundPacketStream {
+    type BoundPacket;
+
+    fn decode_client_bound_packet<const N: usize>(
+        &mut self,
+        read_cursor: &mut fast_collections::Cursor<u8, N>,
+    ) -> Result<Self::BoundPacket, ()>;
+
+    fn encode_client_bound_packet<const N: usize>(
+        &mut self,
+        packet: &Self::BoundPacket,
+        write_cursor: &mut fast_collections::Cursor<u8, N>,
+    ) -> Result<(), ()>;
+}
+
+pub trait ServerBoundPacketStream {
+    type BoundPacket;
+    fn decode_server_bound_packet<const N: usize>(
+        &mut self,
+        read_cursor: &mut fast_collections::Cursor<u8, N>,
+    ) -> Result<Self::BoundPacket, ()>;
+
+    fn encode_server_bound_packet<const N: usize>(
+        &mut self,
+        packet: &Self::BoundPacket,
+        write_cursor: &mut fast_collections::Cursor<u8, N>,
+    ) -> Result<(), ()>;
+}
+
 pub trait PacketStreamFormat: Sized {
     fn read_packet_id<P, const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<P, ()>
     where

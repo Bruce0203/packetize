@@ -3,7 +3,7 @@
 #[cfg(feature = "stream")]
 mod test {
     use fast_collections::Cursor;
-    use packetize::{streaming_packets, Decode, Encode, SimplePacketStreamFormat};
+    use packetize::{streaming_packets, ClientBoundPacketStream, Decode, Encode, SimplePacketStreamFormat};
 
     #[streaming_packets(SimplePacketStreamFormat)]
     #[derive(Debug, Default, PartialEq, Eq, PartialOrd, Ord)]

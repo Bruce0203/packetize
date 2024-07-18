@@ -6,18 +6,21 @@ struct Bound {
     suffix: &'static str,
     bound_packet_ident: &'static str,
     fn_name: &'static str,
+    trait_name: &'static str,
 }
 
 const CLIENT_BOUND: Bound = Bound {
     suffix: "S2c",
     bound_packet_ident: "ClientBoundPacket",
     fn_name: "client_bound",
+    trait_name: "ClientBoundPacketStream",
 };
 
 const SERVER_BOUND: Bound = Bound {
     suffix: "C2s",
     bound_packet_ident: "ServerBoundPacket",
     fn_name: "server_bound",
+    trait_name: "ServerBoundPacketStream",
 };
 
 struct PacketStream<'a> {
@@ -189,6 +192,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
     let state_idents: Vec<&Ident> = idents_by_states(&packet_stream.states);
     let decode_fn_name = format_ident!("decode_{}_packet", bound.fn_name);
     let encode_fn_name = format_ident!("encode_{}_packet", bound.fn_name);
+    let trait_name = format_ident!("{}", bound.trait_name);
     quote! {
         #(#state_quotes)*
 
@@ -196,8 +200,10 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             #(#bound_packets_path(#bound_packets_path),)*
         }
 
-        impl #packet_stream_ident {
-            #vis fn #decode_fn_name<const N: usize>(
+        impl packetize::#trait_name for #packet_stream_ident {
+            type BoundPacket = #bound_packet_ident;
+
+            fn #decode_fn_name<const N: usize>(
                 &mut self,
                 read_cursor: &mut fast_collections::Cursor<u8, N>,
             ) -> Result<#bound_packet_ident, ()> {
@@ -211,7 +217,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 })
             }
 
-            #vis fn #encode_fn_name<const N: usize>(
+            fn #encode_fn_name<const N: usize>(
                 &mut self,
                 packet: &#bound_packet_ident,
                 write_cursor: &mut fast_collections::Cursor<u8, N>,

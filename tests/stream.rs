@@ -7,7 +7,7 @@
 #[cfg(test)]
 mod test {
     use fast_collections::{Cursor, String};
-    use packetize::{stream::SimplePacketStreamFormat, streaming_packets, Decode, Encode};
+    use packetize::{stream::SimplePacketStreamFormat, streaming_packets, Decode, Encode, ServerBoundPacketStream};
 
     #[streaming_packets(SimplePacketStreamFormat)]
     pub enum PacketStreamState {

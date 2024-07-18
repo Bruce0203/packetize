@@ -27,7 +27,7 @@ license = "MIT"
 [dependencies]
 packetize_derive = { path = "./impl", version = "0.30.0" }
 integer-encoding = "4.0.0"
-fast_collections = "0.50.0"
+fast_collections = { path = "../fast-collections" }
 uuid = { version = "1.10.0", features = ["v4"], optional = true }
 
 [features]
