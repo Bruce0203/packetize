@@ -162,10 +162,10 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         let state_bound_packet_paths = paths_by_packets(&state_bound_packets);
         if !state_bound_packets.is_empty() {
             quote! {
-                match <#format as packetize::PacketStreamFormat>::read_packet_id::<#state_bound_packets_name, _>(read_cursor)? {
+                match <#format as packetize::PacketStreamFormat>::read_packet_id::<#state_bound_packets_name, N>(read_cursor)? {
                     #(
                     #state_bound_packets_name::#state_bound_packet_paths => {
-                        <#state_bound_packet_paths as packetize::Decode>::decode(read_cursor)?.into()
+                        <#format as packetize::PacketStreamFormat>::read_packet::<Self, #state_bound_packet_paths, N>(self, read_cursor)?.into()
                     },
                     )*
                 }
@@ -181,7 +181,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             match packet {
                 #(
                 #bound_packet_ident::#bound_packets_path(p) => {
-                    <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, _, _>(self, p, write_cursor)?
+                    <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, #bound_packets_path, N>(self, p, write_cursor)?
                 }
                 )*
             }

@@ -1,5 +1,3 @@
-#![feature(generic_arg_infer)]
-
 #[cfg(feature = "stream")]
 mod test {
     use fast_collections::Cursor;
