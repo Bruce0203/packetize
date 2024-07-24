@@ -1,5 +1,5 @@
 use crate::{Decode, Encode};
-use fast_collections::{Cursor, CursorReadTransmute, PushTransmute, String, Vec};
+use fast_collections::{Cursor, CursorReadTransmute, Push, PushTransmute, String, Vec};
 
 macro_rules! impl_encoder_and_decoder {
     ($($name:ident),*) => {
@@ -124,5 +124,15 @@ impl<const STR_LEN: usize> Decode for String<STR_LEN> {
     ) -> Result<Self, ()> {
         let vec: Vec<u8, STR_LEN> = Decode::decode(read_cursor)?;
         Ok(unsafe { fast_collections::const_transmute_unchecked(vec) })
+    }
+}
+
+impl<T: Encode> Encode for Option<T> {
+    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        write_cursor.push(self.is_some() as u8).map_err(|_| ())?;
+        if let Some(value) = self {
+            value.encode(write_cursor)?;
+        }
+        Ok(())
     }
 }
