@@ -1,7 +1,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use fast_collections::{Cursor, CursorReadTransmute, PushTransmute, String};
+use fast_collections::{cursor, Cursor, CursorReadTransmute, PushTransmute, String};
 use packetize::{Decode, Encode};
 
 #[test]
@@ -115,4 +115,16 @@ fn asdf() {
 }
 
 #[test]
-fn asdf2() {}
+fn asdf2() {
+    #[derive(Encode, Decode, Debug, PartialEq, Eq, PartialOrd, Ord)]
+    enum A {
+        V1,
+        V2,
+        V3,
+    }
+    let value = A::V2;
+    let mut cursor: Cursor<u8, 100> = Cursor::new();
+    value.encode(&mut cursor).unwrap();
+    let decoded = A::decode(&mut cursor).unwrap();
+    assert_eq!(decoded, value);
+}

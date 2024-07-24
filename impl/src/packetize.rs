@@ -11,7 +11,10 @@ pub(crate) fn encode_derive(input: TokenStream) -> TokenStream {
                 impl packetize::Encode for #item_name {
                     fn encode<const N: usize>
                         (&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
-                        fast_collections::PushTransmute::push_transmute(write_cursor, Clone::clone(self))
+                            let value: &[u8; core::mem::size_of::<Self>()] = unsafe { fast_collections::const_transmute_unchecked(self) };
+                            let value = *value;
+                            let value: Self = unsafe { fast_collections::const_transmute_unchecked(value) };
+                        fast_collections::PushTransmute::push_transmute(write_cursor, value)
                     }
                 }
             }
@@ -45,7 +48,13 @@ pub(crate) fn decode_derive(input: TokenStream) -> TokenStream {
                     fn decode<const N: usize>
                         (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> {
                         fast_collections::CursorReadTransmute::read_transmute(read_cursor)
-                            .map(|v| *v)
+                            .map(|v| {
+                                let value: &Self = v;
+                                let value: &[u8; core::mem::size_of::<Self>()] = unsafe { fast_collections::const_transmute_unchecked(v) };
+                                let value = *value;
+                                let value: Self = unsafe { fast_collections::const_transmute_unchecked(value) };
+                                value
+                            })
                             .ok_or_else(|| ())
                     }
                 }

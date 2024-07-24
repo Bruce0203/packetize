@@ -287,7 +287,7 @@ checksum = "b410bbe7e14ab526a0e86877eb47c6996a2bd7746f027ba551028c925390e4e9"
 
 [[package]]
 name = "packetize"
-version = "0.34.0"
+version = "0.35.0"
 dependencies = [
  "criterion",
  "fast_collections",
@@ -298,7 +298,7 @@ dependencies = [
 
 [[package]]
 name = "packetize_derive"
-version = "0.34.0"
+version = "0.35.0"
 dependencies = [
  "proc-macro2",
  "quote",
