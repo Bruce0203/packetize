@@ -1,5 +1,5 @@
 use crate::{Decode, Encode};
-use fast_collections::{Cursor, CursorReadTransmute, Push, PushTransmute, String, Vec};
+use fast_collections::{Cursor, CursorRead, CursorReadTransmute, Push, PushTransmute, String, Vec};
 
 macro_rules! impl_encoder_and_decoder {
     ($($name:ident),*) => {
@@ -134,5 +134,15 @@ impl<T: Encode> Encode for Option<T> {
             value.encode(write_cursor)?;
         }
         Ok(())
+    }
+}
+
+impl<T: Decode> Decode for Option<T> {
+    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        Ok(if *read_cursor.read().ok_or_else(|| ())? != 0 {
+            Some(T::decode(read_cursor)?)
+        } else {
+            None
+        })
     }
 }
