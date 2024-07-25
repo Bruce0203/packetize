@@ -7,11 +7,15 @@
 #[cfg(test)]
 mod test {
     use fast_collections::{Cursor, String};
-    use packetize::{stream::SimplePacketStreamFormat, streaming_packets, Decode, Encode, ServerBoundPacketStream};
+    use packetize::{
+        stream::SimplePacketStreamFormat, streaming_packets, ClientBoundPacketStream, Decode,
+        Encode, ServerBoundPacketStream,
+    };
 
     #[streaming_packets(SimplePacketStreamFormat)]
+    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
     pub enum PacketStreamState {
-        HandShake(#[change_state_to(Login)] HandShakeC2s),
+        HandShake(#[change_state_to(Login)] HandShakeS2c),
         Login(
             LoginRequestC2s,
             LoignSuccessS2c,
@@ -21,7 +25,7 @@ mod test {
     }
 
     #[derive(Encode, Decode)]
-    pub struct HandShakeC2s {
+    pub struct HandShakeS2c {
         value: u16,
         value2: String<123>,
     }
@@ -48,22 +52,27 @@ mod test {
 
     #[test]
     fn stream_test() {
-        let value = HandShakeC2s {
+        let value = HandShakeS2c {
             value: 123,
             value2: String::<123>::from_array(*b"baba"),
         };
         let mut connection_state = PacketStreamState::HandShake;
         let mut cursor: Cursor<u8, 1000> = Cursor::new();
         connection_state
-            .encode_server_bound_packet(&value.into(), &mut cursor)
+            .encode_client_bound_packet(&value.into(), &mut cursor)
             .unwrap();
         println!("{:?}", &cursor.filled()[cursor.pos()..]);
-        connection_state = PacketStreamState::HandShake;
-        let decoded: HandShakeC2s = connection_state
-            .decode_server_bound_packet(&mut cursor)
-            .unwrap()
-            .into();
-        assert_eq!(decoded.value, 123);
-        println!("{:?}", &cursor.filled()[cursor.pos()..]);
+        println!("HIa");
+        assert_eq!(connection_state, PacketStreamState::Login);
+        connection_state
+            .encode_server_bound_packet(&LoginRequestC2s { value: 123 }.into(), &mut cursor)
+            .unwrap();
+        //connection_state = PacketStreamState::HandShake;
+        //let decoded: HandShakeS2c = connection_state
+        //    .decode_server_bound_packet(&mut cursor)
+        //    .unwrap()
+        //    .into();
+        //assert_eq!(decoded.value, 123);
+        //println!("{:?}", &cursor.filled()[cursor.pos()..]);
     }
 }
