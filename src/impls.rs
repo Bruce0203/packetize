@@ -146,3 +146,24 @@ impl<T: Decode> Decode for Option<T> {
         })
     }
 }
+
+impl<T: Decode, E: Decode> Decode for Result<T, E> {
+    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        Ok(if *read_cursor.read().ok_or_else(|| ())? != 0 {
+            Ok(T::decode(read_cursor)?)
+        } else {
+            Err(E::decode(read_cursor)?)
+        })
+    }
+}
+
+impl<T: Encode, E: Encode> Encode for Result<T, E> {
+    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        write_cursor.push(self.is_ok() as u8).map_err(|_| ())?;
+        match self {
+            Ok(value) => value.encode(write_cursor)?,
+            Err(value) => value.encode(write_cursor)?,
+        }
+        Ok(())
+    }
+}
