@@ -29,11 +29,13 @@ packetize_derive = { path = "./impl", version = "0.40.0" }
 integer-encoding = "4.0.0"
 fast_collections = "0.52.0"
 uuid = { version = "1.10.0", features = ["v4"], optional = true }
+nonmax = { version = "0.5.5", optional = true }
 
 [features]
-default = ["uuid", "stream"]
+default = ["uuid", "stream", "nonmax"]
 uuid = ["dep:uuid"]
 stream = ["packetize_derive/stream"]
+nonmax = ["dep:nonmax"]
 minecraft = []
 
 [[bench]]

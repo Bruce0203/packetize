@@ -8,6 +8,9 @@ pub mod impls;
 #[cfg(feature = "uuid")]
 pub mod uuid;
 
+#[cfg(feature = "nonmax")]
+pub mod nonmax;
+
 #[cfg(feature = "stream")]
 pub mod stream;
 #[cfg(feature = "stream")]
