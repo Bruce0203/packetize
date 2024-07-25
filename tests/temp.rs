@@ -128,3 +128,13 @@ fn asdf2() {
     let decoded = A::decode(&mut cursor).unwrap();
     assert_eq!(decoded, value);
 }
+
+#[test]
+fn asdf3() {
+    #[derive(Encode, Decode, Debug, PartialEq, Eq, PartialOrd, Ord)]
+    enum A {
+        B,
+    }
+    let mut cursor: Cursor<u8, 100> = Cursor::new();
+    A::B.encode(&mut cursor).unwrap();
+}

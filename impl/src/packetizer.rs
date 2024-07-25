@@ -55,11 +55,11 @@ pub(crate) fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenS
         #main_body_generated
         #client_bound_generated
         #server_bound_generated
-    }.into()
+    }
+    .into()
 }
 
-
-fn generate_main_enum_body(packet_stream: &PacketStream) -> proc_macro2::TokenStream{
+fn generate_main_enum_body(packet_stream: &PacketStream) -> proc_macro2::TokenStream {
     let vis = packet_stream.vis;
     let packet_stream_ident = packet_stream.ident;
     let state_idents = idents_by_states(&packet_stream.states);
@@ -81,7 +81,6 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         .iter()
         .map(|state| {
             let state_ident = state.ident;
-            let states: Vec<_> = idents_by_states(&packet_stream.states); 
             let state_bound_packets = packets_filtered_with_suffix(&state.packets, bound.suffix);
             let state_bound_packet_paths = paths_by_packets(&state_bound_packets);
             let state = state.ident;
@@ -109,7 +108,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             }).collect();
 
             quote! {
-                #packets_enum 
+                #packets_enum
                 #(
                 impl From<#state_bound_packet_paths> for #bound_packets {
                     fn from(value: #state_bound_packet_paths) -> Self {
@@ -251,11 +250,8 @@ fn packet_stream_by_inputs<'a>(format: &'a Ident, item_enum: &'a ItemEnum) -> Pa
     }
 }
 
-fn idents_by_states<'a>(states: &Vec<PacketStreamState<'a>>) -> Vec<&'a Ident>{
-        states
-        .iter()
-        .map(|state| state.ident)
-        .collect()
+fn idents_by_states<'a>(states: &Vec<PacketStreamState<'a>>) -> Vec<&'a Ident> {
+    states.iter().map(|state| state.ident).collect()
 }
 
 fn packet_stream_state_by_enum_variant(enum_variant: &Variant) -> PacketStreamState {
@@ -269,21 +265,19 @@ fn packet_stream_state_by_enum_variant(enum_variant: &Variant) -> PacketStreamSt
                     Type::Path(path) => &path.path,
                     _ => unimplemented!("type must path"),
                 },
-                changing_state: find_ident_in_attrs(&field.attrs, "change_state_to")
-                    .map(|attr| match attr.meta {
+                changing_state: find_ident_in_attrs(&field.attrs, "change_state_to").map(|attr| {
+                    match attr.meta {
                         syn::Meta::List(list) => list.tokens,
                         _ => panic!("attribute needs single value input"),
-                    }),
+                    }
+                }),
             })
             .collect(),
         attrs: &enum_variant.attrs,
     }
 }
 
-fn find_ident_in_attrs<'a>(
-    attrs: &'a Vec<Attribute>,
-    ident: &'static str,
-) -> Option<Attribute> {
+fn find_ident_in_attrs<'a>(attrs: &'a Vec<Attribute>, ident: &'static str) -> Option<Attribute> {
     attrs
         .iter()
         .find(|attr| {
@@ -320,7 +314,6 @@ fn packets_filtered_with_suffix<'a>(
         .collect::<Vec<_>>()
 }
 
-
-fn attrs_by_states<'a>(states: &Vec<PacketStreamState<'a>>) -> Vec<&'a Vec<Attribute>>{
+fn attrs_by_states<'a>(states: &Vec<PacketStreamState<'a>>) -> Vec<&'a Vec<Attribute>> {
     states.iter().map(|state| state.attrs).collect()
 }

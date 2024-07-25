@@ -7,18 +7,30 @@ pub(crate) fn encode_derive(input: TokenStream) -> TokenStream {
     match item {
         Item::Enum(value) => {
             let item_name = &value.ident;
-            quote! {
-                impl packetize::Encode for #item_name {
-                    fn encode<const N: usize>
-                        (&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
-                            let value: &[u8; core::mem::size_of::<Self>()] = unsafe { fast_collections::const_transmute_unchecked(self) };
-                            let value = *value;
-                            let value: Self = unsafe { fast_collections::const_transmute_unchecked(value) };
-                        fast_collections::PushTransmute::push_transmute(write_cursor, value)
+            if value.variants.len() == 1 {
+                quote! {
+                    impl packetize::Encode for #item_name {
+                        fn encode<const N: usize>
+                            (&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
+                                 Ok(())
                     }
                 }
+                }
+            } else {
+                quote! {
+                    impl packetize::Encode for #item_name {
+                        fn encode<const N: usize>
+                            (&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
+                                let value: &[u8; core::mem::size_of::<Self>()] = unsafe { fast_collections::const_transmute_unchecked(self) };
+                                let value = *value;
+                                let value: Self = unsafe { fast_collections::const_transmute_unchecked(value) };
+                            fast_collections::PushTransmute::push_transmute(write_cursor, value)
+                        }
+                    }
+                }
+
             }
-        }
+                    }
         Item::Struct(item_struct) => {
             let item_name = &item_struct.ident;
             let has_field_name = item_struct.fields.iter().last().map(|field| field.ident.is_some());
@@ -43,6 +55,17 @@ pub(crate) fn decode_derive(input: TokenStream) -> TokenStream {
     match item {
         Item::Enum(value) => {
             let item_name = &value.ident;
+            if value.variants.len()==1 {
+            let first = &value.variants.first().unwrap().ident;
+             quote! {
+                impl packetize::Decode for #item_name {
+                    fn decode<const N: usize>
+                        (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> {
+                                return Ok(Self::#first)
+                    }
+                }
+            }
+            } else {
             quote! {
                 impl packetize::Decode for #item_name {
                     fn decode<const N: usize>
@@ -54,10 +77,9 @@ pub(crate) fn decode_derive(input: TokenStream) -> TokenStream {
                                 let value = *value;
                                 let value: Self = unsafe { fast_collections::const_transmute_unchecked(value) };
                                 value
-                            })
-                            .ok_or_else(|| ())
-                    }
+                            }).ok_or_else(|| ())}
                 }
+            }
             }
         }
         Item::Struct(item_struct) => {
