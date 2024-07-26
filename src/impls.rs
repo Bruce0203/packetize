@@ -203,3 +203,57 @@ impl<T: Decode, const LEN: usize> Decode for Vec<T, LEN> {
         }
     }
 }
+
+impl<T: Encode, T2: Encode> Encode for (T, T2) {
+    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        self.0.encode(write_cursor)?;
+        self.1.encode(write_cursor)?;
+        Ok(())
+    }
+}
+
+impl<T: Encode, T2: Encode, T3: Encode> Encode for (T, T2, T3) {
+    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        self.0.encode(write_cursor)?;
+        self.1.encode(write_cursor)?;
+        self.2.encode(write_cursor)?;
+        Ok(())
+    }
+}
+
+impl<T: Encode, T2: Encode, T3: Encode, T4: Encode> Encode for (T, T2, T3, T4) {
+    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        self.0.encode(write_cursor)?;
+        self.1.encode(write_cursor)?;
+        self.2.encode(write_cursor)?;
+        self.3.encode(write_cursor)?;
+        Ok(())
+    }
+}
+
+impl<T: Decode, T2: Decode> Decode for (T, T2) {
+    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        Ok((T::decode(read_cursor)?, T2::decode(read_cursor)?))
+    }
+}
+
+impl<T: Decode, T2: Decode, T3: Decode> Decode for (T, T2, T3) {
+    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        Ok((
+            T::decode(read_cursor)?,
+            T2::decode(read_cursor)?,
+            T3::decode(read_cursor)?,
+        ))
+    }
+}
+
+impl<T: Decode, T2: Decode, T3: Decode, T4: Decode> Decode for (T, T2, T3, T4) {
+    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        Ok((
+            T::decode(read_cursor)?,
+            T2::decode(read_cursor)?,
+            T3::decode(read_cursor)?,
+            T4::decode(read_cursor)?,
+        ))
+    }
+}
