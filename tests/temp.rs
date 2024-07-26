@@ -145,7 +145,8 @@ fn asdf3() {
 fn test222() {
     #[derive(Default, Encode, Decode)]
     struct MyStruct {
-        value: usize,
+        v: String<3>,
+        value: u16,
     }
     let mut vec: Vec<MyStruct, 10> = Vec::uninit();
     unsafe { vec.push_unchecked(MyStruct::default()) };
@@ -156,6 +157,7 @@ fn test222() {
     let mut cursor: Cursor<u8, 100> = Cursor::new();
     vec.encode(&mut cursor).unwrap();
     println!("test222: {:?}", cursor.filled());
-    Vec::<MyStruct, 10>::decode(&mut cursor).unwrap();
+    let decoded = Vec::<MyStruct, 10>::decode(&mut cursor).unwrap();
+    assert_eq!(decoded.len(), 5);
     assert_eq!(cursor.remaining(), 0);
 }
