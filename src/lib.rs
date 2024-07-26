@@ -1,4 +1,5 @@
 #![feature(generic_arg_infer)]
+#![feature(min_specialization)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 

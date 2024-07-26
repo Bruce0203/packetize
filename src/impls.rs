@@ -1,6 +1,8 @@
 use crate::{Decode, Encode};
 use fast_collections::{Cursor, CursorRead, CursorReadTransmute, Push, PushTransmute, String, Vec};
 
+type VarIntType = u32;
+
 macro_rules! impl_encoder_and_decoder {
     ($($name:ident),*) => {
         $(
@@ -87,14 +89,14 @@ impl<const VEC_LEN: usize> Encode for Vec<u8, VEC_LEN> {
 }
 
 impl<const VEC_LEN: usize> Decode for Vec<u8, VEC_LEN> {
-    fn decode<const CURSOR_LEN: usize>(
+    default fn decode<const CURSOR_LEN: usize>(
         read_cursor: &mut Cursor<u8, CURSOR_LEN>,
     ) -> Result<Self, ()> {
         let mut vec = Vec::<u8, VEC_LEN>::uninit();
         let pos = read_cursor.pos();
         let filled = &read_cursor.filled()[pos..];
         let (length, read_length) =
-            <u32 as integer_encoding::VarInt>::decode_var(filled).ok_or_else(|| ())?;
+            <VarIntType as integer_encoding::VarInt>::decode_var(filled).ok_or_else(|| ())?;
         let length = length as usize;
         let read_length_plus_length = unsafe { read_length.unchecked_add(length) };
         let new_pos = unsafe { pos.unchecked_add(read_length_plus_length) };
@@ -165,5 +167,31 @@ impl<T: Encode, E: Encode> Encode for Result<T, E> {
             Err(value) => value.encode(write_cursor)?,
         }
         Ok(())
+    }
+}
+
+impl<T: Encode, const LEN: usize> Encode for Vec<T, LEN> {
+    default fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        let len: VarIntType = self.len() as VarIntType;
+        integer_encoding::VarInt::encode_var(len, unsafe { write_cursor.unfilled_mut() });
+        *unsafe { write_cursor.filled_len_mut() } += len as usize;
+        for ele in self.iter() {
+            ele.encode(write_cursor)?;
+        }
+        Ok(())
+    }
+}
+
+impl<T: Decode, const LEN: usize> Decode for Vec<T, LEN> {
+    default fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        let mut vec = Vec::uninit();
+        let (len, read_len) =
+            integer_encoding::VarInt::decode_var(read_cursor.filled()).ok_or_else(|| ())?;
+        let len: VarIntType = len;
+        *unsafe { read_cursor.pos_mut() } += read_len as usize;
+        for _ in 0..len {
+            unsafe { vec.push_unchecked(T::decode(read_cursor)?) };
+        }
+        Ok(vec)
     }
 }
