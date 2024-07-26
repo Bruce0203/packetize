@@ -185,16 +185,21 @@ impl<T: Encode, const LEN: usize> Encode for Vec<T, LEN> {
 
 impl<T: Decode, const LEN: usize> Decode for Vec<T, LEN> {
     default fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
-        let mut vec = Vec::<T, LEN>::uninit();
+        let mut vec = Vec::uninit();
         let (len, read_len) =
-            integer_encoding::VarInt::decode_var(read_cursor.filled()).ok_or_else(|| ())?;
+            integer_encoding::VarInt::decode_var(&read_cursor.filled()[read_cursor.pos()..])
+                .ok_or_else(|| ())?;
         let len: VarIntType = len;
         let len = len as usize;
-        *unsafe { read_cursor.pos_mut() } += read_len as usize;
-        for i in 0..len {
-            vec.as_array_mut()[i] = T::decode(read_cursor)?;
+        if len < LEN {
+            *unsafe { read_cursor.pos_mut() } += read_len as usize;
+            *unsafe { vec.len_mut() } = len;
+            for i in 0..len {
+                vec.as_array_mut()[i] = T::decode(read_cursor)?;
+            }
+            Ok(vec)
+        } else {
+            Err(())
         }
-        *unsafe { vec.len_mut() } = len;
-        Ok(vec)
     }
 }

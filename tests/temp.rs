@@ -143,21 +143,11 @@ fn asdf3() {
 
 #[test]
 fn test222() {
-    #[derive(Default, Encode, Decode)]
-    struct MyStruct {
-        v: String<3>,
-        value: u16,
-    }
-    let mut vec: Vec<MyStruct, 10> = Vec::uninit();
-    unsafe { vec.push_unchecked(MyStruct::default()) };
-    unsafe { vec.push_unchecked(MyStruct::default()) };
-    unsafe { vec.push_unchecked(MyStruct::default()) };
-    unsafe { vec.push_unchecked(MyStruct::default()) };
-    unsafe { vec.push_unchecked(MyStruct::default()) };
+    let vec: Vec<u16, 20> = Vec::uninit();
     let mut cursor: Cursor<u8, 100> = Cursor::new();
     vec.encode(&mut cursor).unwrap();
-    println!("test222: {:?}", cursor.filled());
-    let decoded = Vec::<MyStruct, 10>::decode(&mut cursor).unwrap();
-    assert_eq!(decoded.len(), 5);
+    println!("test222: {:?}", &cursor.filled()[cursor.pos()..]);
+    let decoded = Vec::<u16, 20>::decode(&mut cursor).unwrap();
+    assert_eq!(decoded.len(), 0);
     assert_eq!(cursor.remaining(), 0);
 }

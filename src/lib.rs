@@ -16,6 +16,8 @@ pub mod nonmax;
 pub mod stream;
 #[cfg(feature = "stream")]
 pub use crate::stream::*;
+
+///TODO Warning that if packet is only one in a state, than packet struct must not unit struct
 #[cfg(feature = "stream")]
 pub use packetize_derive::streaming_packets;
 

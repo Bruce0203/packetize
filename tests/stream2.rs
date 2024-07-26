@@ -1,6 +1,8 @@
 #[cfg(feature = "stream")]
 mod test {
-    use fast_collections::Cursor;
+    use core::panic;
+
+    use fast_collections::{Cursor, Get, Push, Vec};
     use packetize::{
         streaming_packets, ClientBoundPacketStream, Decode, Encode, SimplePacketStreamFormat,
     };
@@ -16,7 +18,7 @@ mod test {
 
     #[derive(Encode, Decode)]
     pub struct HandShakeS2c {
-        protocol_version: i32,
+        vec: Vec<u16, 20>,
     }
 
     #[derive(Encode, Decode)]
@@ -29,15 +31,20 @@ mod test {
     fn test_change_state() {
         let cursor = &mut Cursor::<u8, 100>::new();
         let mut state = PacketStreamState::HandShake;
+        let mut vec = Vec::uninit();
+        vec.push(123).unwrap();
         state
-            .encode_client_bound_packet(
-                &HandShakeS2c {
-                    protocol_version: 123,
-                }
-                .into(),
-                cursor,
-            )
+            .encode_client_bound_packet(&HandShakeS2c { vec }.into(), cursor)
             .unwrap();
         assert_eq!(state, PacketStreamState::Login);
+        state = PacketStreamState::HandShake;
+        let decoded = state.decode_client_bound_packet(cursor).unwrap();
+        match decoded {
+            ClientBoundPacket::HandShakeS2c(HandShakeS2c { vec }) => {
+                assert_eq!(vec.get(0).unwrap(), &123);
+                assert_eq!(vec.len(), 1);
+            }
+            ClientBoundPacket::LoginRequestS2c(_) => panic!(),
+        }
     }
 }
