@@ -1,7 +1,9 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use fast_collections::{cursor, Cursor, CursorReadTransmute, PushTransmute, String};
+use std::iter::Map;
+
+use fast_collections::{cursor, Cursor, CursorReadTransmute, Push, PushTransmute, String, Vec};
 use packetize::{Decode, Encode};
 
 #[test]
@@ -137,4 +139,23 @@ fn asdf3() {
     }
     let mut cursor: Cursor<u8, 100> = Cursor::new();
     A::B.encode(&mut cursor).unwrap();
+}
+
+#[test]
+fn test222() {
+    #[derive(Default, Encode, Decode)]
+    struct MyStruct {
+        value: usize,
+    }
+    let mut vec: Vec<MyStruct, 10> = Vec::uninit();
+    unsafe { vec.push_unchecked(MyStruct::default()) };
+    unsafe { vec.push_unchecked(MyStruct::default()) };
+    unsafe { vec.push_unchecked(MyStruct::default()) };
+    unsafe { vec.push_unchecked(MyStruct::default()) };
+    unsafe { vec.push_unchecked(MyStruct::default()) };
+    let mut cursor: Cursor<u8, 100> = Cursor::new();
+    vec.encode(&mut cursor).unwrap();
+    println!("test222: {:?}", cursor.filled());
+    Vec::<MyStruct, 10>::decode(&mut cursor).unwrap();
+    assert_eq!(cursor.remaining(), 0);
 }

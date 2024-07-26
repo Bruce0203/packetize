@@ -173,8 +173,9 @@ impl<T: Encode, E: Encode> Encode for Result<T, E> {
 impl<T: Encode, const LEN: usize> Encode for Vec<T, LEN> {
     default fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
         let len: VarIntType = self.len() as VarIntType;
-        integer_encoding::VarInt::encode_var(len, unsafe { write_cursor.unfilled_mut() });
-        *unsafe { write_cursor.filled_len_mut() } += len as usize;
+        let write_len =
+            integer_encoding::VarInt::encode_var(len, unsafe { write_cursor.unfilled_mut() });
+        *unsafe { write_cursor.filled_len_mut() } += write_len as usize;
         for ele in self.iter() {
             ele.encode(write_cursor)?;
         }
@@ -184,14 +185,16 @@ impl<T: Encode, const LEN: usize> Encode for Vec<T, LEN> {
 
 impl<T: Decode, const LEN: usize> Decode for Vec<T, LEN> {
     default fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
-        let mut vec = Vec::uninit();
+        let mut vec = Vec::<T, LEN>::uninit();
         let (len, read_len) =
             integer_encoding::VarInt::decode_var(read_cursor.filled()).ok_or_else(|| ())?;
         let len: VarIntType = len;
+        let len = len as usize;
         *unsafe { read_cursor.pos_mut() } += read_len as usize;
-        for _ in 0..len {
-            unsafe { vec.push_unchecked(T::decode(read_cursor)?) };
+        for i in 0..len {
+            vec.as_array_mut()[i] = T::decode(read_cursor)?;
         }
+        *unsafe { vec.len_mut() } = len;
         Ok(vec)
     }
 }
