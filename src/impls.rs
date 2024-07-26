@@ -257,3 +257,15 @@ impl<T: Decode, T2: Decode, T3: Decode, T4: Decode> Decode for (T, T2, T3, T4) {
         ))
     }
 }
+
+impl Encode for () {
+    fn encode<const N: usize>(&self, _write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
+        Ok(())
+    }
+}
+
+impl Decode for () {
+    fn decode<const N: usize>(_read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
+        Ok(())
+    }
+}
