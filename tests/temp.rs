@@ -3,7 +3,7 @@
 
 use std::iter::Map;
 
-use fast_collections::{cursor, Cursor, CursorReadTransmute, Push, PushTransmute, String, Vec};
+use fast_collections::{cursor, Cursor, String, Vec};
 use packetize::{Decode, Encode};
 
 #[test]
@@ -29,15 +29,13 @@ fn test() {
 
         impl Encode for TestEnum {
             fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
-                PushTransmute::push_transmute(write_cursor, Clone::clone(self))
+                write_cursor.push_transmute(self.clone())
             }
         }
 
         impl Decode for TestEnum {
             fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
-                CursorReadTransmute::read_transmute(read_cursor)
-                    .map(|v| *v)
-                    .ok_or_else(|| ())
+                read_cursor.read_transmute().map(|v| *v).ok_or_else(|| ())
             }
         }
         let mut cursor: Cursor<u8, 100> = Cursor::new();

@@ -1,4 +1,4 @@
-use fast_collections::{const_transmute_unchecked, Cursor, CursorReadTransmute, Push};
+use fast_collections::{const_transmute_unchecked, Cursor};
 use integer_encoding::VarInt;
 
 use crate::{Decode, Encode};

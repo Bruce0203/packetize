@@ -2,7 +2,7 @@
 mod test {
     use core::panic;
 
-    use fast_collections::{Cursor, Get, Push, Vec};
+    use fast_collections::{Cursor, Vec};
     use packetize::{
         streaming_packets, ClientBoundPacketStream, Decode, Encode, SimplePacketStreamFormat,
     };

@@ -1,5 +1,5 @@
 use crate::{Decode, Encode};
-use fast_collections::{Cursor, CursorRead, CursorReadTransmute, Push, PushTransmute, String, Vec};
+use fast_collections::{Cursor, String, Vec};
 
 type VarIntType = u32;
 
@@ -21,7 +21,7 @@ macro_rules! impl_encoder_and_decoder {
         {
             #[inline(always)]
             fn decode<const N: usize>(read_cursor: &mut fast_collections::Cursor<u8, N>) -> Result<Self, ()> {
-                CursorReadTransmute::read_transmute::<[u8; _]>(read_cursor)
+                read_cursor.read_transmute::<[u8; _]>()
                     .map(|v| Self::from_be_bytes(*v))
                     .ok_or_else(|| ())
             }
@@ -45,7 +45,8 @@ impl Decode for bool {
     fn decode<const N: usize>(
         read_cursor: &mut fast_collections::Cursor<u8, N>,
     ) -> Result<Self, ()> {
-        CursorReadTransmute::read_transmute::<Self>(read_cursor)
+        read_cursor
+            .read_transmute::<Self>()
             .map(|v| *v)
             .ok_or_else(|| ())
     }
