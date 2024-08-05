@@ -17,16 +17,9 @@ pub mod stream;
 #[cfg(feature = "stream")]
 pub use crate::stream::*;
 
+mod traits;
+pub use traits::*;
+
 ///TODO Warning that if packet is only one in a state, than packet struct must not unit struct
 #[cfg(feature = "stream")]
 pub use packetize_derive::streaming_packets;
-
-use fast_collections::Cursor;
-
-pub trait Encode {
-    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()>;
-}
-
-pub trait Decode: Sized {
-    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()>;
-}
