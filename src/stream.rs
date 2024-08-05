@@ -13,13 +13,13 @@ pub trait ClientBoundPacketStream {
 
     fn decode_client_bound_packet<const N: usize>(
         &mut self,
-        read_cursor: &mut fast_collections::Cursor<u8, N>,
+        read_cursor: &mut Cursor<u8, N>,
     ) -> Result<Self::BoundPacket, ()>;
 
     fn encode_client_bound_packet<const N: usize>(
         &mut self,
         packet: &Self::BoundPacket,
-        write_cursor: &mut fast_collections::Cursor<u8, N>,
+        write_cursor: &mut Cursor<u8, N>,
     ) -> Result<(), ()>;
 }
 
@@ -27,13 +27,13 @@ pub trait ServerBoundPacketStream {
     type BoundPacket;
     fn decode_server_bound_packet<const N: usize>(
         &mut self,
-        read_cursor: &mut fast_collections::Cursor<u8, N>,
+        read_cursor: &mut Cursor<u8, N>,
     ) -> Result<Self::BoundPacket, ()>;
 
     fn encode_server_bound_packet<const N: usize>(
         &mut self,
         packet: &Self::BoundPacket,
-        write_cursor: &mut fast_collections::Cursor<u8, N>,
+        write_cursor: &mut Cursor<u8, N>,
     ) -> Result<(), ()>;
 }
 
