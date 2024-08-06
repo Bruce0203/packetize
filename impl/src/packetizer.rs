@@ -128,14 +128,14 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 impl packetize::Packet<#packet_stream_ident> for #state_bound_packet_paths {
                     fn id(state: &#packet_stream_ident) -> Option<u32> {
                         match state {
-                            #packet_stream_ident::#state => if std::mem::size_of::<#state_packets_name>() == 0 {
+                            #packet_stream_ident::#state => if core::mem::size_of::<#state_packets_name>() == 0 {
                                 None
                             } else {
                                 Some(#state_packets_name::#state_bound_packet_paths as u32)
                             },
                             _ => unimplemented!(
                                 "There is no id for '{}' packet in {}",
-                                std::any::type_name::<Self>(),
+                                core::any::type_name::<Self>(),
                                 stringify!(#state)
                             ),
                         }

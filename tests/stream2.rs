@@ -1,3 +1,5 @@
+#![no_std]
+
 #[cfg(feature = "stream")]
 mod test {
     use core::panic;
