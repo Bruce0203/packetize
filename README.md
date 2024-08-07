@@ -5,7 +5,8 @@
 
 
 ```rust
-use fast_collections::Cursor;
+use fastbuf::Buffer;
+use packetize::ClientBoundPacketStream;
 use packetize::{streaming_packets, Decode, Encode, SimplePacketStreamFormat};
 
 #[streaming_packets(SimplePacketStreamFormat)]
@@ -28,21 +29,17 @@ pub struct LoginRequestS2c {}
 #[derive(Encode, Decode)]
 pub struct LoginSuccessC2s {}
 
-#[test]
-fn test_change_state() {
-    let cursor = &mut Cursor::<u8, 100>::new();
-    let mut state = PacketStreamState::HandShake;
-    state
-        .encode_client_bound_packet(
-            &HandShakeS2c {
-                protocol_version: 123,
-            }
-            .into(),
-            cursor,
-        )
-        .unwrap();
-    assert_eq!(state, PacketStreamState::Login);
-}
-
+let cursor = &mut Buffer::<100>::new();
+let mut state = PacketStreamState::HandShake;
+state
+    .encode_client_bound_packet(
+        &HandShakeS2c {
+            protocol_version: 123,
+        }
+        .into(),
+        cursor,
+    )
+    .unwrap();
+assert_eq!(state, PacketStreamState::Login);
 
 ```
