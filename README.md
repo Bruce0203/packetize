@@ -29,7 +29,7 @@ pub struct LoginRequestS2c {}
 #[derive(Encode, Decode)]
 pub struct LoginSuccessC2s {}
 
-let cursor = &mut Buffer::<100>::new();
+let buf = &mut Buffer::<100>::new();
 let mut state = PacketStreamState::HandShake;
 state
     .encode_client_bound_packet(
@@ -37,7 +37,7 @@ state
             protocol_version: 123,
         }
         .into(),
-        cursor,
+        buf,
     )
     .unwrap();
 assert_eq!(state, PacketStreamState::Login);
