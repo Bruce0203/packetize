@@ -1,4 +1,6 @@
-use fast_collections::{const_transmute_unchecked, Cursor};
+use std::mem::{transmute_copy, MaybeUninit};
+
+use fastbuf::{ReadBuf, WriteBuf};
 use integer_encoding::VarInt;
 
 use crate::{Decode, Encode};
@@ -11,96 +13,94 @@ pub trait Packet<T> {
 pub trait ClientBoundPacketStream {
     type BoundPacket;
 
-    fn decode_client_bound_packet<const N: usize>(
+    fn decode_client_bound_packet(
         &mut self,
-        read_cursor: &mut Cursor<u8, N>,
+        buf: &mut impl ReadBuf,
     ) -> Result<Self::BoundPacket, ()>;
 
-    fn encode_client_bound_packet<const N: usize>(
+    fn encode_client_bound_packet(
         &mut self,
         packet: &Self::BoundPacket,
-        write_cursor: &mut Cursor<u8, N>,
+        buf: &mut impl WriteBuf,
     ) -> Result<(), ()>;
 }
 
 pub trait ServerBoundPacketStream {
     type BoundPacket;
-    fn decode_server_bound_packet<const N: usize>(
+    fn decode_server_bound_packet(
         &mut self,
-        read_cursor: &mut Cursor<u8, N>,
+        buf: &mut impl ReadBuf,
     ) -> Result<Self::BoundPacket, ()>;
 
-    fn encode_server_bound_packet<const N: usize>(
+    fn encode_server_bound_packet(
         &mut self,
         packet: &Self::BoundPacket,
-        write_cursor: &mut Cursor<u8, N>,
+        buf: &mut impl WriteBuf,
     ) -> Result<(), ()>;
 }
 
 pub trait PacketStreamFormat: Sized {
-    fn read_packet_id<P, const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<P, ()>
+    fn read_packet_id<ID>(read_cursor: &mut impl ReadBuf) -> Result<ID, ()>
     where
-        P: Default,
-        [(); size_of::<P>()]:;
+        ID: Default,
+        [(); size_of::<ID>()]:;
 
-    fn write_packet_with_id<T, P, const N: usize>(
+    fn write_packet_with_id<T, P>(
         state: &mut T,
         packet: &P,
-        cursor: &mut Cursor<u8, N>,
+        cursor: &mut impl WriteBuf,
     ) -> Result<(), ()>
     where
         P: Packet<T> + Encode;
 
-    fn read_packet<T, P, const N: usize>(
-        state: &mut T,
-        read_cursor: &mut Cursor<u8, N>,
-    ) -> Result<P, ()>
+    fn read_packet<T, P>(state: &mut T, buf: &mut impl ReadBuf) -> Result<P, ()>
     where
         P: Decode + Packet<T>,
     {
         if let Some(s) = P::is_changing_state() {
             *state = s;
         }
-        Ok(P::decode(read_cursor)?)
+        Ok(P::decode(buf)?)
     }
 }
 
 pub struct SimplePacketStreamFormat;
 
 impl PacketStreamFormat for SimplePacketStreamFormat {
-    fn read_packet_id<P, const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<P, ()>
+    fn read_packet_id<ID>(buf: &mut impl ReadBuf) -> Result<ID, ()>
     where
-        P: Default,
-        [(); size_of::<P>()]:,
+        ID: Default,
+        [(); size_of::<ID>()]:,
     {
         Ok(unsafe {
-            if size_of::<P>() == 0 {
-                P::default()
-            } else if size_of::<P>() >= u8::MAX as usize {
+            if size_of::<ID>() == 0 {
+                ID::default()
+            } else if size_of::<ID>() >= u8::MAX as usize {
                 let (len, read_length) =
-                    VarInt::decode_var(read_cursor.unfilled_mut()).ok_or_else(|| ())?;
-                *read_cursor.filled_len_mut() += read_length;
+                    VarInt::decode_var(buf.get_continuous(u32::BITS as usize / 8 + 1))
+                        .ok_or_else(|| ())?;
                 let len: u32 = len;
-                const_transmute_unchecked(len)
+                buf.advance(read_length);
+                transmute_copy::<_, ID>(&len)
             } else {
-                const_transmute_unchecked(
-                    *read_cursor
-                        .read_transmute::<[u8; size_of::<P>()]>()
-                        .ok_or_else(|| ())?,
-                )
+                #[allow(invalid_value)]
+                let mut value: [u8; size_of::<ID>()] =
+                    [MaybeUninit::uninit().assume_init(); size_of::<ID>()];
+                value.copy_from_slice(buf.read(size_of::<ID>()));
+                transmute_copy::<_, ID>(&value)
             }
         })
     }
 
-    fn write_packet_with_id<T, P, const N: usize>(
+    fn write_packet_with_id<T, P>(
         state: &mut T,
         packet: &P,
-        cursor: &mut Cursor<u8, N>,
+        cursor: &mut impl WriteBuf,
     ) -> Result<(), ()>
     where
         P: Packet<T> + Encode,
     {
-        Self::write_packet_id::<_, P, _>(state, cursor)?;
+        Self::write_packet_id::<_, P>(state, cursor)?;
         if let Some(s) = P::is_changing_state() {
             *state = s;
         }
@@ -110,10 +110,7 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
 }
 
 impl SimplePacketStreamFormat {
-    fn write_packet_id<T, P, const N: usize>(
-        state: &T,
-        write_cursor: &mut Cursor<u8, N>,
-    ) -> Result<(), ()>
+    fn write_packet_id<T, P>(state: &T, buf: &mut impl WriteBuf) -> Result<(), ()>
     where
         P: Packet<T>,
     {
@@ -121,11 +118,14 @@ impl SimplePacketStreamFormat {
             Some(id) => {
                 if id > u8::MAX as u32 {
                     unsafe {
-                        let write_len = VarInt::encode_var(id, write_cursor.unfilled_mut());
-                        *write_cursor.filled_len_mut() += write_len;
+                        #[allow(invalid_value)]
+                        let mut buffer: [u8; u32::BITS as usize / 8 + 1] =
+                            [MaybeUninit::uninit().assume_init(); u32::BITS as usize / 8 + 1];
+                        let write_len = VarInt::encode_var(id, &mut buffer);
+                        buf.write(&buffer[..write_len])?;
                     }
                 } else {
-                    write_cursor.push(id as u8).map_err(|_| ())?;
+                    buf.write(&id.to_be_bytes())?;
                 }
             }
             None => {}

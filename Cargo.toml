@@ -27,20 +27,26 @@ license = "MIT"
 [dependencies]
 packetize_derive = { path = "./impl", version = "0.59.0" }
 integer-encoding = "4.0.0"
-fast_collections = "0.65.0"
 uuid = { version = "1.10.0", features = ["v4"], optional = true }
 nonmax = { version = "0.5.5", optional = true }
+fastbuf = "0.8.0"
+arrayvec = { version = "0.7.4", optional = true }
 
 [features]
-default = ["uuid", "stream", "nonmax"]
+default = ["uuid", "stream", "nonmax", "arrayvec"]
 uuid = ["dep:uuid"]
 stream = ["packetize_derive/stream"]
 nonmax = ["dep:nonmax"]
 minecraft = []
+arrayvec = ["dep:arrayvec"]
 
 [[bench]]
 name = "bench"
 harness = false
+
+[[bench]]
+name = "vec"
+harnes = false
 
 [dev-dependencies]
 criterion = "0.5.1"

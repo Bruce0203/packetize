@@ -162,10 +162,10 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         let state_bound_packet_paths = paths_by_packets(&state_bound_packets);
         if !state_bound_packets.is_empty() {
             quote! {
-                match <#format as packetize::PacketStreamFormat>::read_packet_id::<#state_bound_packets_name, N>(read_cursor)? {
+                match <#format as packetize::PacketStreamFormat>::read_packet_id::<#state_bound_packets_name>(buf)? {
                     #(
                     #state_bound_packets_name::#state_bound_packet_paths => {
-                        <#format as packetize::PacketStreamFormat>::read_packet::<Self, #state_bound_packet_paths, N>(self, read_cursor)?.into()
+                        <#format as packetize::PacketStreamFormat>::read_packet::<Self, #state_bound_packet_paths>(self, buf)?.into()
                     },
                     )*
                 }
@@ -181,7 +181,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             match packet {
                 #(
                 #bound_packet_ident::#bound_packets_path(p) => {
-                    <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, #bound_packets_path, N>(self, p, write_cursor)?
+                    <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, #bound_packets_path>(self, p, buf)?
                 }
                 )*
             }
@@ -203,9 +203,9 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         impl packetize::#trait_name for #packet_stream_ident {
             type BoundPacket = #bound_packet_ident;
 
-            fn #decode_fn_name<const N: usize>(
+            fn #decode_fn_name(
                 &mut self,
-                read_cursor: &mut fast_collections::Cursor<u8, N>,
+                buf: &mut impl fastbuf::ReadBuf,
             ) -> Result<#bound_packet_ident, ()> {
                 #[allow(unreachable_code)]
                 Ok(match self {
@@ -217,10 +217,10 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 })
             }
 
-            fn #encode_fn_name<const N: usize>(
+            fn #encode_fn_name(
                 &mut self,
                 packet: &#bound_packet_ident,
-                write_cursor: &mut fast_collections::Cursor<u8, N>,
+                buf: &mut impl fastbuf::WriteBuf
             ) -> Result<(), ()> {
                 #[allow(unreachable_code)]
                 #encode_packet

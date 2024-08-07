@@ -1,18 +1,16 @@
-use fast_collections::Cursor;
+use fastbuf::{ReadBuf, WriteBuf};
 use uuid::Uuid;
 
 use crate::{Decode, Encode};
 
 impl Encode for Uuid {
-    fn encode<const N: usize>(&self, write_cursor: &mut Cursor<u8, N>) -> Result<(), ()> {
-        write_cursor.push_transmute(*self.as_bytes())
+    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+        buf.write(self.as_bytes())
     }
 }
 
 impl Decode for Uuid {
-    fn decode<const N: usize>(read_cursor: &mut Cursor<u8, N>) -> Result<Self, ()> {
-        Ok(Uuid::from_bytes(
-            *read_cursor.read_transmute::<[u8; 16]>().ok_or_else(|| ())?,
-        ))
+    fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+        Uuid::from_slice(buf.read(16)).map_err(|_| ())
     }
 }

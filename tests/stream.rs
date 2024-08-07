@@ -6,7 +6,10 @@
 #[cfg(feature = "stream")]
 #[cfg(test)]
 mod test {
-    use fast_collections::{Cursor, String};
+    use std::str::FromStr;
+
+    use arrayvec::ArrayString;
+    use fastbuf::Buffer;
     use packetize::{
         stream::SimplePacketStreamFormat, streaming_packets, ClientBoundPacketStream, Decode,
         Encode, ServerBoundPacketStream,
@@ -27,7 +30,7 @@ mod test {
     #[derive(Encode, Decode)]
     pub struct HandShakeS2c {
         value: u16,
-        value2: String<123>,
+        value2: ArrayString<123>,
     }
 
     #[derive(Encode, Decode)]
@@ -54,14 +57,14 @@ mod test {
     fn stream_test() {
         let value = HandShakeS2c {
             value: 123,
-            value2: String::<123>::from_array(*b"baba"),
+            value2: ArrayString::<123>::from_str("baba").unwrap(),
         };
         let mut connection_state = PacketStreamState::HandShake;
-        let mut cursor: Cursor<u8, 1000> = Cursor::new();
+        let mut cursor: Buffer<1000> = Buffer::new();
         connection_state
             .encode_client_bound_packet(&value.into(), &mut cursor)
             .unwrap();
-        println!("{:?}", &cursor.filled()[cursor.pos()..]);
+        //println!("{:?}", &cursor.filled()[cursor.pos()..]);
         println!("HIa");
         assert_eq!(connection_state, PacketStreamState::Login);
         connection_state

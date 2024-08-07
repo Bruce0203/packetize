@@ -10,21 +10,18 @@ pub(crate) fn encode_derive(input: TokenStream) -> TokenStream {
             if value.variants.len() == 1 {
                 quote! {
                     impl packetize::Encode for #item_name {
-                        fn encode<const N: usize>
-                            (&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
-                                 Ok(())
+                        fn encode(&self, buf: &mut impl fastbuf::WriteBuf) -> core::result::Result<(), ()> {
+                            Ok(())
+                        }
                     }
-                }
                 }
             } else {
                 quote! {
                     impl packetize::Encode for #item_name {
-                        fn encode<const N: usize>
-                            (&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
-                                let value: &[u8; core::mem::size_of::<Self>()] = unsafe { fast_collections::const_transmute_unchecked(self) };
-                                let value = *value;
-                                let value: Self = unsafe { fast_collections::const_transmute_unchecked(value) };
-                                write_cursor.push_transmute(value)
+                        fn encode(&self, buf: &mut impl fastbuf::WriteBuf) -> core::result::Result<(), ()> {
+                            let value: &[u8; core::mem::size_of::<Self>()] = unsafe { core::mem::transmute(self) };
+                            buf.write(value)?;
+                            Ok(())
                         }
                     }
                 }
@@ -37,8 +34,7 @@ pub(crate) fn encode_derive(input: TokenStream) -> TokenStream {
             let encode_constructor = generate_encoder(&item_struct, has_field_name);
             quote! {
                impl packetize::Encode for #item_name {
-                   fn encode<const N: usize>
-                       (&self, write_cursor: &mut fast_collections::Cursor<u8, N>) -> core::result::Result<(), ()> {
+                   fn encode(&self, buf: &mut impl fastbuf::WriteBuf) -> core::result::Result<(), ()> {
                        #encode_constructor
                        Ok(())
                    }
@@ -59,25 +55,20 @@ pub(crate) fn decode_derive(input: TokenStream) -> TokenStream {
             let first = &value.variants.first().unwrap().ident;
              quote! {
                 impl packetize::Decode for #item_name {
-                    fn decode<const N: usize>
-                        (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> {
-                                return Ok(Self::#first)
+                    fn decode(buf: &mut impl fastbuf::ReadBuf) -> core::result::Result<Self, ()> {
+                        return Ok(Self::#first)
                     }
                 }
             }
             } else {
             quote! {
                 impl packetize::Decode for #item_name {
-                    fn decode<const N: usize>
-                        (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> core::result::Result<Self, ()> {
-                            read_cursor.read_transmute()
-                            .map(|v| {
-                                let value: &Self = v;
-                                let value: &[u8; core::mem::size_of::<Self>()] = unsafe { fast_collections::const_transmute_unchecked(v) };
-                                let value = *value;
-                                let value: Self = unsafe { fast_collections::const_transmute_unchecked(value) };
-                                value
-                            }).ok_or_else(|| ())}
+                    fn decode(buf: &mut impl fastbuf::ReadBuf) -> core::result::Result<Self, ()> {
+                        let slice = buf.read(size_of::<Self>());
+                        let mut result = [unsafe { core::mem::MaybeUninit::uninit().assume_init() }; size_of::<Self>()];
+                        result.copy_from_slice(slice);
+                        Ok(unsafe { core::mem::transmute::<_, Self>(result) })
+                    }
                 }
             }
             }
@@ -89,8 +80,7 @@ pub(crate) fn decode_derive(input: TokenStream) -> TokenStream {
             quote! {
                impl packetize::Decode for #item_name
                {
-                   fn decode<const N: usize>
-                       (read_cursor: &mut fast_collections::cursor::Cursor<u8, N>) -> Result<Self, ()> {
+                   fn decode(buf: &mut impl fastbuf::ReadBuf) -> Result<Self, ()> {
                        Ok(#decode_constructor)
                    }
                }
@@ -105,7 +95,7 @@ fn generate_decoder(
     item_struct: &ItemStruct,
     has_field_name: Option<bool>,
 ) -> proc_macro2::TokenStream {
-    let decode = quote!(packetize::Decode::decode(read_cursor)?);
+    let decode = quote!(packetize::Decode::decode(buf)?);
     if let Some(has_field_name) = has_field_name {
         if has_field_name {
             let fields: Vec<_> = item_struct
@@ -141,12 +131,12 @@ fn generate_encoder(
         Some(if has_field_name {
             let fields = map_fields_to_idents(&item_struct.fields);
             quote! {
-                #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
+                #(packetize::Encode::encode(&self.#fields, buf)?;)*
             }
         } else {
             let fields = (0..item_struct.fields.len()).map(|i| Index::from(i));
             quote! {
-                #(packetize::Encode::encode(&self.#fields, write_cursor)?;)*
+                #(packetize::Encode::encode(&self.#fields, buf)?;)*
             }
         })
     } else {

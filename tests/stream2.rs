@@ -4,7 +4,8 @@
 mod test {
     use core::panic;
 
-    use fast_collections::{Cursor, Vec};
+    use arrayvec::ArrayVec;
+    use fastbuf::Buffer;
     use packetize::{
         streaming_packets, ClientBoundPacketStream, Decode, Encode, SimplePacketStreamFormat,
     };
@@ -20,7 +21,7 @@ mod test {
 
     #[derive(Encode, Decode)]
     pub struct HandShakeS2c {
-        vec: Vec<u16, 20>,
+        vec: ArrayVec<u16, 20>,
     }
 
     #[derive(Encode, Decode)]
@@ -31,10 +32,10 @@ mod test {
 
     #[test]
     fn test_change_state() {
-        let cursor = &mut Cursor::<u8, 100>::new();
+        let cursor = &mut Buffer::<100>::new();
         let mut state = PacketStreamState::HandShake;
-        let mut vec = Vec::uninit();
-        vec.push(123).unwrap();
+        let mut vec = ArrayVec::new();
+        vec.push(123);
         state
             .encode_client_bound_packet(&HandShakeS2c { vec }.into(), cursor)
             .unwrap();
