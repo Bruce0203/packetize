@@ -5,7 +5,7 @@ use crate::{Decode, Encode};
 
 impl Encode for Uuid {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        buf.write(self.as_bytes())
+        buf.try_write(self.as_bytes())
     }
 }
 

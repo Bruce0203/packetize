@@ -29,7 +29,7 @@ packetize_derive = { path = "./impl", version = "0.60.0" }
 integer-encoding = "4.0.0"
 uuid = { version = "1.10.0", features = ["v4"], optional = true }
 nonmax = { version = "0.5.5", optional = true }
-fastbuf = "0.8.0"
+fastbuf = "0.13.0"
 arrayvec = { version = "0.7.4", optional = true }
 
 [features]
@@ -41,12 +41,12 @@ minecraft = []
 arrayvec = ["dep:arrayvec"]
 
 [[bench]]
-name = "bench"
+name = "var_int"
 harness = false
 
-[[bench]]
-name = "vec"
-harnes = false
-
 [dev-dependencies]
-criterion = "0.5.1"
+rand = "0.8.5"
+divan = "0.1.14"
+
+[profile.bench]
+lto = true

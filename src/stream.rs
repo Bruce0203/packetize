@@ -122,10 +122,10 @@ impl SimplePacketStreamFormat {
                         let mut buffer: [u8; u32::BITS as usize / 8 + 1] =
                             [MaybeUninit::uninit().assume_init(); u32::BITS as usize / 8 + 1];
                         let write_len = VarInt::encode_var(id, &mut buffer);
-                        buf.write(&buffer[..write_len])?;
+                        buf.try_write(&buffer[..write_len])?;
                     }
                 } else {
-                    buf.write(&id.to_be_bytes())?;
+                    buf.try_write(&id.to_be_bytes())?;
                 }
             }
             None => {}

@@ -20,7 +20,7 @@ pub(crate) fn encode_derive(input: TokenStream) -> TokenStream {
                     impl packetize::Encode for #item_name {
                         fn encode(&self, buf: &mut impl fastbuf::WriteBuf) -> core::result::Result<(), ()> {
                             let value: &[u8; core::mem::size_of::<Self>()] = unsafe { core::mem::transmute(self) };
-                            buf.write(value)?;
+                            buf.try_write(value)?;
                             Ok(())
                         }
                     }

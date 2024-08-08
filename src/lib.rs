@@ -19,6 +19,9 @@ pub mod stream;
 #[cfg(feature = "stream")]
 pub use crate::stream::*;
 
+mod var_int;
+pub use var_int::*;
+
 mod traits;
 pub use traits::*;
 

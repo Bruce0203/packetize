@@ -36,7 +36,6 @@ fn test() {
     }
 
     {
-        println!("asdf");
         let mut cursor: Buffer<1000> = Buffer::new();
         MyComponent {
             value: 123,

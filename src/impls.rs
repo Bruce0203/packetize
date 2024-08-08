@@ -10,7 +10,7 @@ macro_rules! impl_encoder_and_decoder {
 impl Encode for $name {
     #[inline(always)]
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        buf.write(&self.to_be_bytes())?;
+        buf.try_write(&self.to_be_bytes())?;
         Ok(())
     }
 }
@@ -31,7 +31,7 @@ impl Decode for $name {
 impl Encode for bool {
     #[inline(always)]
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        buf.write(&[*self as u8])?;
+        buf.try_write(&[*self as u8])?;
         Ok(())
     }
 }
@@ -60,7 +60,7 @@ impl_encoder_and_decoder! {
 
 impl<T: Encode> Encode for Option<T> {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        buf.write(&[self.is_some() as u8]).map_err(|_| ())?;
+        buf.try_write(&[self.is_some() as u8]).map_err(|_| ())?;
         if let Some(value) = self {
             value.encode(buf)?;
         }
@@ -98,7 +98,7 @@ impl<T: Decode, E: Decode> Decode for Result<T, E> {
 
 impl<T: Encode, E: Encode> Encode for Result<T, E> {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        buf.write(&[self.is_ok() as u8])?;
+        buf.try_write(&[self.is_ok() as u8])?;
         match self {
             Ok(value) => value.encode(buf)?,
             Err(value) => value.encode(buf)?,

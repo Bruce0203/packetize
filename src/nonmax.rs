@@ -13,7 +13,7 @@ macro_rules! impl_nonmax {
         $(
 impl Encode for $name {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        buf.write(&self.get().to_be_bytes())?;
+        buf.try_write(&self.get().to_be_bytes())?;
         Ok(())
     }
 }
