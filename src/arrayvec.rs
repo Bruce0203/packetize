@@ -1,8 +1,9 @@
 ///! TODO remove code dups..
 use arrayvec::{ArrayString, ArrayVec};
 use fastbuf::{ReadBuf, WriteBuf};
+use fastvarint::VarInt;
 
-use crate::{Decode, Encode, VarInt};
+use crate::{Decode, Encode};
 
 impl<const CAP: usize> Encode for ArrayVec<u8, CAP> {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {

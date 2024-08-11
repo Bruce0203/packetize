@@ -109,6 +109,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fastvarint"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b006233b46fb9f34767166ce4f9c5985684daae013f4a460b8ae90c07d0ca06e"
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -145,11 +151,12 @@ checksum = "610a5acd306ec67f907abe5567859a3c693fb9886eb1f012ab8f2a47bef3db51"
 
 [[package]]
 name = "packetize"
-version = "0.61.0"
+version = "0.63.0"
 dependencies = [
  "arrayvec",
  "divan",
  "fastbuf",
+ "fastvarint",
  "integer-encoding",
  "nonmax",
  "packetize_derive",
@@ -159,7 +166,7 @@ dependencies = [
 
 [[package]]
 name = "packetize_derive"
-version = "0.61.0"
+version = "0.63.0"
 dependencies = [
  "proc-macro2",
  "quote",
