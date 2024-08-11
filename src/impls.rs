@@ -7,23 +7,23 @@ use crate::{Decode, Encode};
 macro_rules! impl_encoder_and_decoder {
     ($($name:ident),*) => {
         $(
-impl Encode for $name {
-    #[inline(always)]
-    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        buf.try_write(&self.to_be_bytes())?;
-        Ok(())
-    }
-}
-impl Decode for $name {
-    #[inline(always)]
-    fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
-        let slice = buf.read(size_of::<Self>());
-        #[allow(invalid_value)]
-        let mut result = [unsafe { MaybeUninit::uninit().assume_init() }; size_of::<Self>()];
-        result.copy_from_slice(slice);
-        Ok(Self::from_be_bytes(result))
-    }
-}
+            impl Encode for $name {
+                #[inline(always)]
+                fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+                    buf.try_write(&self.to_be_bytes())?;
+                    Ok(())
+                }
+            }
+            impl Decode for $name {
+                #[inline(always)]
+                fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+                    let slice = buf.read(size_of::<Self>());
+                    #[allow(invalid_value)]
+                    let mut result = [unsafe { MaybeUninit::uninit().assume_init() }; size_of::<Self>()];
+                    result.copy_from_slice(slice);
+                    Ok(Self::from_be_bytes(result))
+                }
+            }
         )*
     };
 }

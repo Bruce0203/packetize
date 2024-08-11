@@ -1,7 +1,7 @@
-use std::mem::{transmute_copy, MaybeUninit};
+use std::mem::{transmute, transmute_copy, MaybeUninit};
 
 use fastbuf::{ReadBuf, WriteBuf};
-use integer_encoding::VarInt;
+use fastvarint::VarInt;
 
 use crate::{Decode, Encode};
 
@@ -72,24 +72,10 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
         ID: Default,
         [(); size_of::<ID>()]:,
     {
-        Ok(unsafe {
-            if size_of::<ID>() == 0 {
-                ID::default()
-            } else if size_of::<ID>() >= u8::MAX as usize {
-                let (len, read_length) =
-                    VarInt::decode_var(buf.get_continuous(u32::BITS as usize / 8 + 1))
-                        .ok_or_else(|| ())?;
-                let len: u32 = len;
-                buf.advance(read_length);
-                transmute_copy::<_, ID>(&len)
-            } else {
-                #[allow(invalid_value)]
-                let mut value: [u8; size_of::<ID>()] =
-                    [MaybeUninit::uninit().assume_init(); size_of::<ID>()];
-                value.copy_from_slice(buf.read(size_of::<ID>()));
-                transmute_copy::<_, ID>(&value)
-            }
-        })
+        let buffer = buf.get_continuous(<u32 as VarInt>::MAX_VAR_INT_SPACE);
+        let (data, read_length) = u32::decode_var(|i| Ok(unsafe { *buffer.get_unchecked(i) }))?;
+        buf.advance(read_length);
+        unsafe { transmute_copy(&data) }
     }
 
     fn write_packet_with_id<T, P>(
@@ -100,36 +86,23 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
     where
         P: Packet<T> + Encode,
     {
-        Self::write_packet_id::<_, P>(state, buf)?;
+        match P::id(state) {
+            Some(id) => {
+                if buf.remaining_space() < <u32 as VarInt>::MAX_VAR_INT_SPACE {
+                    Err(())?
+                }
+                id.encode_var(|b| {
+                    buf.write(&[b]);
+                    Ok(())
+                })?;
+            }
+            None => Err(())?,
+        };
+
         if let Some(s) = P::is_changing_state() {
             *state = s;
         }
         packet.encode(buf)?;
-        Ok(())
-    }
-}
-
-impl SimplePacketStreamFormat {
-    fn write_packet_id<T, P>(state: &T, buf: &mut impl WriteBuf) -> Result<(), ()>
-    where
-        P: Packet<T>,
-    {
-        match P::id(state) {
-            Some(id) => {
-                if id > u8::MAX as u32 {
-                    unsafe {
-                        #[allow(invalid_value)]
-                        let mut buffer: [u8; u32::BITS as usize / 8 + 1] =
-                            [MaybeUninit::uninit().assume_init(); u32::BITS as usize / 8 + 1];
-                        let write_len = VarInt::encode_var(id, &mut buffer);
-                        buf.try_write(&buffer[..write_len])?;
-                    }
-                } else {
-                    buf.try_write(&id.to_be_bytes())?;
-                }
-            }
-            None => {}
-        }
         Ok(())
     }
 }

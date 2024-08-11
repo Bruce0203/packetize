@@ -128,9 +128,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 impl packetize::Packet<#packet_stream_ident> for #state_bound_packet_paths {
                     fn id(state: &#packet_stream_ident) -> Option<u32> {
                         match state {
-                            #packet_stream_ident::#state => if core::mem::size_of::<#state_packets_name>() == 0 {
-                                None
-                            } else {
+                            #packet_stream_ident::#state => {
                                 Some(#state_packets_name::#state_bound_packet_paths as u32)
                             },
                             _ => unimplemented!(
