@@ -40,7 +40,7 @@ pub trait ServerBoundPacketStream {
 }
 
 pub trait PacketStreamFormat: Sized {
-    fn read_packet_id<ID>(read_cursor: &mut impl ReadBuf) -> Result<ID, ()>
+    fn read_packet_id<ID>(buf: &mut impl ReadBuf) -> Result<ID, ()>
     where
         ID: Default,
         [(); size_of::<ID>()]:;
@@ -48,7 +48,7 @@ pub trait PacketStreamFormat: Sized {
     fn write_packet_with_id<T, P>(
         state: &mut T,
         packet: &P,
-        cursor: &mut impl WriteBuf,
+        buf: &mut impl WriteBuf,
     ) -> Result<(), ()>
     where
         P: Packet<T> + Encode;
@@ -95,16 +95,16 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
     fn write_packet_with_id<T, P>(
         state: &mut T,
         packet: &P,
-        cursor: &mut impl WriteBuf,
+        buf: &mut impl WriteBuf,
     ) -> Result<(), ()>
     where
         P: Packet<T> + Encode,
     {
-        Self::write_packet_id::<_, P>(state, cursor)?;
+        Self::write_packet_id::<_, P>(state, buf)?;
         if let Some(s) = P::is_changing_state() {
             *state = s;
         }
-        packet.encode(cursor)?;
+        packet.encode(buf)?;
         Ok(())
     }
 }
