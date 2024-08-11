@@ -101,9 +101,12 @@ dependencies = [
 
 [[package]]
 name = "fastbuf"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65c2d209f9553d52612877a3ae43aa057f6e028964e8d0d5e391c6cde09bec9f"
+checksum = "8762a3b780e05e1254715e597b4502fe067cf10814911d6f4ee83cf6bde28977"
+dependencies = [
+ "varuint",
+]
 
 [[package]]
 name = "getrandom"
@@ -274,6 +277,12 @@ checksum = "81dfa00651efa65069b0b6b651f4aaa31ba9e3c3ce0137aaad053604ee7e0314"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "varuint"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa87b6bf001aaee248041a8fd176b6ed105b5ff78a8d13b4aa2f644660b3031d"
 
 [[package]]
 name = "wasi"
