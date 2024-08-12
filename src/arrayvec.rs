@@ -110,7 +110,7 @@ impl<T: Decode, const N: usize> Decode for ArrayVec<T, N> {
 mod test {
     use std::str::FromStr;
 
-    use arrayvec::{ArrayString, ArrayVec};
+    use arrayvec::ArrayString;
     use fastbuf::{Buffer, WriteBuf};
 
     use crate::Decode;
