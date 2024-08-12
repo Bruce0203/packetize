@@ -16,12 +16,17 @@ impl<const CAP: usize> Encode for ArrayVec<u8, CAP> {
 impl<const N: usize> Decode for ArrayVec<u8, N> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<u8, N>::new();
-        let len = u32::decode_var(buf)? as usize;
-        if buf.remaining() < len {
+        let vec_len = u32::decode_var(buf)? as usize;
+        if buf.remaining() < vec_len {
             Err(())?
         }
-        vec.as_mut_slice().copy_from_slice(buf.read(len));
-        unsafe { vec.set_len(len) };
+        #[cfg(debug_assertions)]
+        if buf.remaining() < vec_len {
+            dbg!(buf.remaining() < vec_len);
+            Err(())?
+        }
+        vec.as_mut_slice().copy_from_slice(buf.read(vec_len));
+        unsafe { vec.set_len(vec_len) };
         Ok(vec)
     }
 }
@@ -37,9 +42,15 @@ impl<const N: usize> Encode for ArrayString<N> {
 impl<const N: usize> Decode for ArrayString<N> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut string = ArrayString::<N>::new();
-        let len = u32::decode_var(buf)? as usize;
-        unsafe { string.set_len(len) };
-        unsafe { string.as_bytes_mut().copy_from_slice(buf.read(len)) };
+        let string_len = u32::decode_var(buf)? as usize;
+        unsafe { string.set_len(string_len) };
+        #[cfg(debug_assertions)]
+        if buf.remaining() < string_len {
+            dbg!(buf.remaining() < string_len);
+            Err(())?
+        }
+
+        unsafe { string.as_bytes_mut().copy_from_slice(buf.read(string_len)) };
         Ok(string)
     }
 }
