@@ -9,6 +9,9 @@ impl<const CAP: usize> Encode for ArrayVec<u8, CAP> {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
         let len = self.len() as u32;
         len.encode_var(buf)?;
+        for ele in self.iter() {
+            ele.encode(buf)?;
+        }
         Ok(())
     }
 }
@@ -18,6 +21,11 @@ impl<const N: usize> Decode for ArrayVec<u8, N> {
         let mut vec = ArrayVec::<u8, N>::new();
         let vec_len = u32::decode_var(buf)? as usize;
         if buf.remaining() < vec_len {
+            Err(())?
+        }
+        if N < vec_len {
+            #[cfg(debug_assertions)]
+            dbg!(N < vec_len);
             Err(())?
         }
         unsafe { vec.set_len(vec_len) };
@@ -41,6 +49,11 @@ impl<const N: usize> Decode for ArrayString<N> {
         if buf.remaining() < string_len {
             Err(())?
         }
+        if N < string_len {
+            #[cfg(debug_assertions)]
+            dbg!(N < string_len);
+            Err(())?
+        }
         unsafe { string.set_len(string_len) };
         unsafe { string.as_bytes_mut().copy_from_slice(buf.read(string_len)) };
         Ok(string)
@@ -49,7 +62,13 @@ impl<const N: usize> Decode for ArrayString<N> {
 
 impl<T: Encode, const N: usize> Encode for ArrayVec<T, N> {
     default fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        (self.len() as u32).encode_var(buf)?;
+        let vec_len = self.len();
+        (vec_len as u32).encode_var(buf)?;
+        if N < vec_len {
+            #[cfg(debug_assertions)]
+            dbg!(N < vec_len);
+            Err(())?
+        }
         for ele in self.iter() {
             ele.encode(buf)?;
         }
@@ -60,9 +79,14 @@ impl<T: Encode, const N: usize> Encode for ArrayVec<T, N> {
 impl<T: Decode, const N: usize> Decode for ArrayVec<T, N> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<T, N>::new();
-        let len = u32::decode_var(buf)? as usize;
-        unsafe { vec.set_len(len) };
-        for i in 0..len {
+        let vec_len = u32::decode_var(buf)? as usize;
+        if N < vec_len {
+            #[cfg(debug_assertions)]
+            dbg!(N < vec_len);
+            Err(())?
+        }
+        unsafe { vec.set_len(vec_len) };
+        for i in 0..vec_len {
             *unsafe { vec.get_unchecked_mut(i) } = T::decode(buf)?;
         }
         Ok(vec)
