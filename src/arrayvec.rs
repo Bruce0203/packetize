@@ -38,13 +38,10 @@ impl<const N: usize> Decode for ArrayString<N> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut string = ArrayString::<N>::new();
         let string_len = u32::decode_var(buf)? as usize;
-        unsafe { string.set_len(string_len) };
-        #[cfg(debug_assertions)]
         if buf.remaining() < string_len {
-            dbg!(buf.remaining() < string_len);
             Err(())?
         }
-
+        unsafe { string.set_len(string_len) };
         unsafe { string.as_bytes_mut().copy_from_slice(buf.read(string_len)) };
         Ok(string)
     }
