@@ -17,12 +17,11 @@ impl<const N: usize> Decode for ArrayVec<u8, N> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<u8, N>::new();
         let vec_len = u32::decode_var(buf)? as usize;
-        if buf.remaining() < vec_len {
-            Err(())?
-        }
         #[cfg(debug_assertions)]
+        dbg!(buf.remaining());
+        #[cfg(debug_assertions)]
+        dbg!(vec_len);
         if buf.remaining() < vec_len {
-            dbg!(buf.remaining() < vec_len);
             Err(())?
         }
         vec.as_mut_slice().copy_from_slice(buf.read(vec_len));
