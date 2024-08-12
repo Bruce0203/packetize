@@ -107,10 +107,10 @@ mod test {
     use crate::Decode;
 
     #[test]
-    fn test_arrayvec_decode() {
+    fn test_arraystring_decode() {
         let mut buf = Buffer::<100>::new();
         buf.write(&[3, 65, 65, 65]);
-        let decoded = ArrayString::<4>::decode(&mut buf).unwrap();
-        assert_eq!(decoded, ArrayString::<4>::from_str("AAA").unwrap());
+        let decoded = ArrayString::<255>::decode(&mut buf).unwrap();
+        assert_eq!(decoded, ArrayString::<255>::from_str("AAA").unwrap());
     }
 }
