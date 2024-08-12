@@ -26,7 +26,6 @@ impl<const N: usize> Decode for ArrayVec<u8, N> {
         let buffer = buf.get_continuous(u32::MAX_VAR_INT_SPACE);
         let (len, read_len) = u32::decode_var(|i| Ok(unsafe { *buffer.get_unchecked(i) }))?;
         let len = len as usize;
-        //TRY to advance bulk, and get_continuous with slicing
         buf.advance(read_len);
         vec.as_mut_slice().copy_from_slice(buf.get_continuous(len));
         unsafe { vec.set_len(len) };
@@ -52,16 +51,15 @@ impl<const N: usize> Encode for ArrayString<N> {
 
 impl<const N: usize> Decode for ArrayString<N> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
-        let mut vec = ArrayString::<N>::new();
+        let mut string = ArrayString::<N>::new();
         let buffer = buf.get_continuous(u32::MAX_VAR_INT_SPACE);
         let (len, read_len) = u32::decode_var(|i| Ok(*unsafe { buffer.get_unchecked(i) })).unwrap();
         buf.advance(read_len);
         let len: u32 = len;
         let len = len as usize;
-        unsafe { vec.set_len(len) };
-        unsafe { vec.as_bytes_mut().copy_from_slice(buf.get_continuous(len)) };
-        buf.advance(len);
-        Ok(vec)
+        unsafe { string.set_len(len) };
+        unsafe { string.as_bytes_mut().copy_from_slice(buf.read(len)) };
+        Ok(string)
     }
 }
 
@@ -96,5 +94,23 @@ impl<T: Decode, const N: usize> Decode for ArrayVec<T, N> {
             *unsafe { vec.get_unchecked_mut(i) } = T::decode(buf)?;
         }
         Ok(vec)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::str::FromStr;
+
+    use arrayvec::{ArrayString, ArrayVec};
+    use fastbuf::{Buffer, WriteBuf};
+
+    use crate::Decode;
+
+    #[test]
+    fn test_arrayvec_decode() {
+        let mut buf = Buffer::<100>::new();
+        buf.write(&[3, 65, 65, 65]);
+        let decoded = ArrayString::<4>::decode(&mut buf).unwrap();
+        assert_eq!(decoded, ArrayString::<4>::from_str("AAA").unwrap());
     }
 }
