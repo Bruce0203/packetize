@@ -14,7 +14,7 @@ use packetize::{streaming_packets, Decode, Encode, SimplePacketStreamFormat};
 pub enum PacketStreamState {
     #[default]
     HandShake(#[change_state_to(Login)] HandShakeS2c),
-    Login(LoginRequestS2c, LoginSuccessC2s),
+    Login(LoginRequestS2c, #[id(1)] LoginSuccessC2s),
     //...
 }
 
