@@ -16,16 +16,16 @@ impl<const CAP: usize> Encode for ArrayVec<u8, CAP> {
     }
 }
 
-impl<const N: usize> Decode for ArrayVec<u8, N> {
+impl<const CAP: usize> Decode for ArrayVec<u8, CAP> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
-        let mut vec = ArrayVec::<u8, N>::new();
+        let mut vec = ArrayVec::<u8, CAP>::new();
         let vec_len = u32::decode_var(buf)? as usize;
         if buf.remaining() < vec_len {
             Err(())?
         }
-        if N < vec_len {
+        if CAP < vec_len {
             #[cfg(debug_assertions)]
-            dbg!(N < vec_len);
+            dbg!(CAP < vec_len);
             Err(())?
         }
         unsafe { vec.set_len(vec_len) };
@@ -34,7 +34,7 @@ impl<const N: usize> Decode for ArrayVec<u8, N> {
     }
 }
 
-impl<const N: usize> Encode for ArrayString<N> {
+impl<const CAP: usize> Encode for ArrayString<CAP> {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
         (self.len() as u32).encode_var(buf)?;
         buf.write(self.as_bytes());
@@ -60,13 +60,13 @@ impl<const N: usize> Decode for ArrayString<N> {
     }
 }
 
-impl<T: Encode, const N: usize> Encode for ArrayVec<T, N> {
+impl<T: Encode, const CAP: usize> Encode for ArrayVec<T, CAP> {
     default fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
         let vec_len = self.len();
         (vec_len as u32).encode_var(buf)?;
-        if N < vec_len {
+        if CAP < vec_len {
             #[cfg(debug_assertions)]
-            dbg!(N < vec_len);
+            dbg!(CAP < vec_len);
             Err(())?
         }
         for ele in self.iter() {
@@ -76,13 +76,13 @@ impl<T: Encode, const N: usize> Encode for ArrayVec<T, N> {
     }
 }
 
-impl<T: Decode, const N: usize> Decode for ArrayVec<T, N> {
+impl<T: Decode, const CAP: usize> Decode for ArrayVec<T, CAP> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
-        let mut vec = ArrayVec::<T, N>::new();
+        let mut vec = ArrayVec::<T, CAP>::new();
         let vec_len = u32::decode_var(buf)? as usize;
-        if N < vec_len {
+        if CAP < vec_len {
             #[cfg(debug_assertions)]
-            dbg!(N < vec_len);
+            dbg!(CAP < vec_len);
             Err(())?
         }
         unsafe { vec.set_len(vec_len) };
