@@ -27,7 +27,10 @@ impl<const N: usize> Decode for ArrayVec<u8, N> {
         let (len, read_len) = u32::decode_var(|i| Ok(unsafe { *buffer.get_unchecked(i) }))?;
         let len = len as usize;
         buf.advance(read_len);
-        vec.as_mut_slice().copy_from_slice(buf.get_continuous(len));
+        if buf.remaining() < len {
+            Err(())?
+        }
+        vec.as_mut_slice().copy_from_slice(buf.read(len));
         unsafe { vec.set_len(len) };
         Ok(vec)
     }
@@ -52,6 +55,9 @@ impl<const N: usize> Encode for ArrayString<N> {
 impl<const N: usize> Decode for ArrayString<N> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut string = ArrayString::<N>::new();
+        if buf.remaining() < u32::MAX_VAR_INT_SPACE {
+            Err(())?
+        }
         let buffer = buf.get_continuous(u32::MAX_VAR_INT_SPACE);
         let (len, read_len) = u32::decode_var(|i| Ok(*unsafe { buffer.get_unchecked(i) })).unwrap();
         buf.advance(read_len);
@@ -84,6 +90,9 @@ impl<T: Encode, const N: usize> Encode for ArrayVec<T, N> {
 impl<T: Decode, const N: usize> Decode for ArrayVec<T, N> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<T, N>::new();
+        if buf.remaining() < u32::MAX_VAR_INT_SPACE {
+            Err(())?
+        }
         let buffer = buf.get_continuous(u32::MAX_VAR_INT_SPACE);
         let (len, read_len) = u32::decode_var(|i| Ok(*unsafe { buffer.get_unchecked(i) })).unwrap();
         buf.advance(read_len);
