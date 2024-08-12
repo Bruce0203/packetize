@@ -25,7 +25,7 @@ impl<const CAP: usize> Decode for ArrayVec<u8, CAP> {
         }
         if CAP < vec_len {
             #[cfg(debug_assertions)]
-            dbg!(CAP < vec_len);
+            dbg!(CAP < vec_len, CAP, vec_len);
             Err(())?
         }
         unsafe { vec.set_len(vec_len) };
@@ -42,16 +42,16 @@ impl<const CAP: usize> Encode for ArrayString<CAP> {
     }
 }
 
-impl<const N: usize> Decode for ArrayString<N> {
+impl<const CAP: usize> Decode for ArrayString<CAP> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
-        let mut string = ArrayString::<N>::new();
+        let mut string = ArrayString::<CAP>::new();
         let string_len = u32::decode_var(buf)? as usize;
         if buf.remaining() < string_len {
             Err(())?
         }
-        if N < string_len {
+        if CAP < string_len {
             #[cfg(debug_assertions)]
-            dbg!(N < string_len);
+            dbg!(CAP < string_len, CAP, string_len);
             Err(())?
         }
         unsafe { string.set_len(string_len) };
@@ -66,7 +66,7 @@ impl<T: Encode, const CAP: usize> Encode for ArrayVec<T, CAP> {
         (vec_len as u32).encode_var(buf)?;
         if CAP < vec_len {
             #[cfg(debug_assertions)]
-            dbg!(CAP < vec_len);
+            dbg!(CAP < vec_len, CAP, vec_len);
             Err(())?
         }
         for ele in self.iter() {
@@ -82,7 +82,7 @@ impl<T: Decode, const CAP: usize> Decode for ArrayVec<T, CAP> {
         let vec_len = u32::decode_var(buf)? as usize;
         if CAP < vec_len {
             #[cfg(debug_assertions)]
-            dbg!(CAP < vec_len);
+            dbg!(CAP < vec_len, CAP, vec_len);
             Err(())?
         }
         unsafe { vec.set_len(vec_len) };
