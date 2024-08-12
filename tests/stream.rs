@@ -9,7 +9,7 @@ mod test {
     use std::str::FromStr;
 
     use arrayvec::ArrayString;
-    use fastbuf::Buffer;
+    use fastbuf::{Buffer, ReadBuf};
     use packetize::{
         stream::SimplePacketStreamFormat, streaming_packets, ClientBoundPacketStream, Decode,
         Encode, ServerBoundPacketStream,
@@ -18,7 +18,11 @@ mod test {
     #[streaming_packets(SimplePacketStreamFormat)]
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
     pub enum PacketStreamState {
-        HandShake(#[change_state_to(Login)] HandShakeS2c),
+        HandShake(
+            #[change_state_to(Login)]
+            #[id(10)]
+            HandShakeS2c,
+        ),
         Login(
             LoginRequestC2s,
             LoignSuccessS2c,
@@ -65,6 +69,7 @@ mod test {
             .encode_client_bound_packet(&value.into(), &mut cursor)
             .unwrap();
         //println!("{:?}", &cursor.filled()[cursor.pos()..]);
+        assert_eq!(cursor.get_continuous(1)[0], 10);
         println!("HIa");
         assert_eq!(connection_state, PacketStreamState::Login);
         connection_state

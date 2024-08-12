@@ -42,6 +42,7 @@ struct PacketStreamState<'a> {
 struct Packet<'a> {
     ident: &'a Path,
     changing_state: Option<proc_macro2::TokenStream>,
+    id_enforcement: Option<proc_macro2::TokenStream>,
 }
 
 pub(crate) fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
@@ -88,6 +89,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             let state_packets_name = format_ident!("{state_ident}{suffix}Packets");
             let vis = packet_stream.vis;
             let bound_packets = format_ident!("{}", bound.bound_packet_ident);
+            let state_bound_packet_ids = ids_by_packets(&state_bound_packets);
             let packets_enum = if state_bound_packets.is_empty() {
                 None
             } else {
@@ -95,17 +97,20 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                     #[derive(Default)]
                     #vis enum #state_packets_name {
                         #[default]
-                        #(#state_bound_packet_paths,)*
+                        #(#state_bound_packet_paths #state_bound_packet_ids,)*
                     }
                 })
             };
-            let changing_state_stmt: Vec<_> = state_bound_packets.iter().map(|field| {
-                if let Some(state) = &field.changing_state {
-                    Some(quote! {Some(#packet_stream_ident::#state)})
-                } else {
-                    Some(quote! {None})
-                }
-            }).collect();
+            let changing_state_stmt: Vec<_> = state_bound_packets
+                .iter()
+                .map(|field| {
+                    if let Some(state) = &field.changing_state {
+                        Some(quote! {Some(#packet_stream_ident::#state)})
+                    } else {
+                        Some(quote! {None})
+                    }
+                })
+                .collect();
 
             quote! {
                 #packets_enum
@@ -269,6 +274,15 @@ fn packet_stream_state_by_enum_variant(enum_variant: &Variant) -> PacketStreamSt
                         _ => panic!("attribute needs single value input"),
                     }
                 }),
+                id_enforcement: find_ident_in_attrs(&field.attrs, "id").map(|attr| {
+                    match attr.meta {
+                        syn::Meta::List(list) => {
+                            let tokens = list.tokens;
+                            quote! { = #tokens }
+                        }
+                        _ => panic!("attribute needs single value input"),
+                    }
+                }),
             })
             .collect(),
         attrs: &enum_variant.attrs,
@@ -293,6 +307,13 @@ fn find_ident_in_attrs<'a>(attrs: &'a Vec<Attribute>, ident: &'static str) -> Op
 
 fn paths_by_packets<'a>(packets: &Vec<&Packet<'a>>) -> Vec<&'a Path> {
     packets.iter().map(|packet| packet.ident).collect()
+}
+
+fn ids_by_packets<'a>(packets: &Vec<&Packet<'a>>) -> Vec<Option<proc_macro2::TokenStream>> {
+    packets
+        .iter()
+        .map(|packet| packet.id_enforcement.clone())
+        .collect()
 }
 
 fn packets_filtered_with_suffix<'a>(

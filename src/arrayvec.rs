@@ -8,11 +8,7 @@ use crate::{Decode, Encode};
 impl<const CAP: usize> Encode for ArrayVec<u8, CAP> {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
         let len = self.len() as u32;
-        len.encode_var(|v| {
-            buf.write(&[v]);
-            Ok(())
-        })?;
-        buf.write(self.as_slice());
+        len.encode_var(buf)?;
         Ok(())
     }
 }
@@ -20,13 +16,7 @@ impl<const CAP: usize> Encode for ArrayVec<u8, CAP> {
 impl<const N: usize> Decode for ArrayVec<u8, N> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<u8, N>::new();
-        if u32::MAX_VAR_INT_SPACE > buf.remaining() {
-            Err(())?
-        }
-        let buffer = buf.get_continuous(u32::MAX_VAR_INT_SPACE);
-        let (len, read_len) = u32::decode_var(|i| Ok(unsafe { *buffer.get_unchecked(i) }))?;
-        let len = len as usize;
-        buf.advance(read_len);
+        let len = u32::decode_var(buf)? as usize;
         if buf.remaining() < len {
             Err(())?
         }
@@ -38,15 +28,7 @@ impl<const N: usize> Decode for ArrayVec<u8, N> {
 
 impl<const N: usize> Encode for ArrayString<N> {
     fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        if self.len() + u32::MAX_VAR_INT_SPACE >= buf.remaining_space() {
-            Err(())?
-        }
-        (self.len() as u32)
-            .encode_var(|b| {
-                buf.write(&[b]);
-                Ok(())
-            })
-            .unwrap();
+        (self.len() as u32).encode_var(buf)?;
         buf.write(self.as_bytes());
         Ok(())
     }
@@ -55,14 +37,7 @@ impl<const N: usize> Encode for ArrayString<N> {
 impl<const N: usize> Decode for ArrayString<N> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut string = ArrayString::<N>::new();
-        if buf.remaining() < u32::MAX_VAR_INT_SPACE {
-            Err(())?
-        }
-        let buffer = buf.get_continuous(u32::MAX_VAR_INT_SPACE);
-        let (len, read_len) = u32::decode_var(|i| Ok(*unsafe { buffer.get_unchecked(i) })).unwrap();
-        buf.advance(read_len);
-        let len: u32 = len;
-        let len = len as usize;
+        let len = u32::decode_var(buf)? as usize;
         unsafe { string.set_len(len) };
         unsafe { string.as_bytes_mut().copy_from_slice(buf.read(len)) };
         Ok(string)
@@ -71,15 +46,7 @@ impl<const N: usize> Decode for ArrayString<N> {
 
 impl<T: Encode, const N: usize> Encode for ArrayVec<T, N> {
     default fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
-        if self.len() + u32::MAX_VAR_INT_SPACE > buf.remaining_space() {
-            Err(())?
-        }
-        (self.len() as u32)
-            .encode_var(|b| {
-                buf.write(&[b]);
-                Ok(())
-            })
-            .unwrap();
+        (self.len() as u32).encode_var(buf)?;
         for ele in self.iter() {
             ele.encode(buf)?;
         }
@@ -90,14 +57,7 @@ impl<T: Encode, const N: usize> Encode for ArrayVec<T, N> {
 impl<T: Decode, const N: usize> Decode for ArrayVec<T, N> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<T, N>::new();
-        if buf.remaining() < u32::MAX_VAR_INT_SPACE {
-            Err(())?
-        }
-        let buffer = buf.get_continuous(u32::MAX_VAR_INT_SPACE);
-        let (len, read_len) = u32::decode_var(|i| Ok(*unsafe { buffer.get_unchecked(i) })).unwrap();
-        buf.advance(read_len);
-        let len: u32 = len;
-        let len = len as usize;
+        let len = u32::decode_var(buf)? as usize;
         unsafe { vec.set_len(len) };
         for i in 0..len {
             *unsafe { vec.get_unchecked_mut(i) } = T::decode(buf)?;
@@ -123,4 +83,3 @@ mod test {
         assert_eq!(decoded, ArrayString::<255>::from_str("AAA").unwrap());
     }
 }
-

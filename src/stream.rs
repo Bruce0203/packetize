@@ -72,9 +72,7 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
         ID: Default,
         [(); size_of::<ID>()]:,
     {
-        let buffer = buf.get_continuous(<u32 as VarInt>::MAX_VAR_INT_SPACE);
-        let (data, read_length) = u32::decode_var(|i| Ok(unsafe { *buffer.get_unchecked(i) }))?;
-        buf.advance(read_length);
+        let data = u32::decode_var(buf)?;
         unsafe { transmute_copy(&data) }
     }
 
@@ -88,13 +86,7 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
     {
         match P::id(state) {
             Some(id) => {
-                if buf.remaining_space() < <u32 as VarInt>::MAX_VAR_INT_SPACE {
-                    Err(())?
-                }
-                id.encode_var(|b| {
-                    buf.write(&[b]);
-                    Ok(())
-                })?;
+                (id as u32).encode_var(buf)?;
             }
             None => Err(())?,
         };
