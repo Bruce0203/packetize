@@ -110,9 +110,9 @@ dependencies = [
 
 [[package]]
 name = "fastvarint"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b006233b46fb9f34767166ce4f9c5985684daae013f4a460b8ae90c07d0ca06e"
+checksum = "b130cd976add02628f436855cdf4ed93b2b359af75c6f8bdf1e2d7ade1990d38"
 
 [[package]]
 name = "getrandom"
