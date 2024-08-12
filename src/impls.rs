@@ -1,4 +1,4 @@
-use std::mem::MaybeUninit;
+use std::mem::{transmute, MaybeUninit};
 
 use fastbuf::{ReadBuf, WriteBuf};
 
@@ -178,5 +178,40 @@ impl<T: Encode> Encode for Box<T> {
 impl<T: Decode> Decode for Box<T> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         Ok(Box::new(T::decode(buf)?))
+    }
+}
+
+impl<const N: usize> Encode for [u8; N] {
+    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+        buf.try_write(self)
+    }
+}
+
+impl<const N: usize> Decode for [u8; N] {
+    fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+        let data = buf.read(N);
+        #[allow(invalid_value)]
+        let mut slice = [unsafe { MaybeUninit::<u8>::uninit().assume_init() }; N];
+        slice.copy_from_slice(data);
+        Ok(slice)
+    }
+}
+
+impl<T: Decode, const N: usize> Decode for [T; N] {
+    default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+        let mut slice: [T; N] = unsafe { transmute(MaybeUninit::<[T; N]>::uninit().assume_init()) };
+        for i in 0..N {
+            slice[i] = T::decode(buf)?;
+        }
+        Ok(slice)
+    }
+}
+
+impl<T: Encode, const N: usize> Encode for [T; N] {
+    default fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+        for data in self.iter() {
+            data.encode(buf)?;
+        }
+        Ok(())
     }
 }

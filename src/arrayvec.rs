@@ -123,3 +123,4 @@ mod test {
         assert_eq!(decoded, ArrayString::<255>::from_str("AAA").unwrap());
     }
 }
+
