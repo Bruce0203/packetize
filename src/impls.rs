@@ -168,3 +168,15 @@ impl Decode for () {
         Ok(())
     }
 }
+
+impl<T: Encode> Encode for Box<T> {
+    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+        T::encode(self, buf)
+    }
+}
+
+impl<T: Decode> Decode for Box<T> {
+    fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+        Ok(Box::new(T::decode(buf)?))
+    }
+}
