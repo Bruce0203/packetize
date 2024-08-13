@@ -1,6 +1,7 @@
 use std::mem::{transmute, MaybeUninit};
 
 use fastbuf::{ReadBuf, WriteBuf};
+use fastvarint::VarInt;
 
 use crate::{Decode, Encode};
 
@@ -211,6 +212,27 @@ impl<T: Encode, const N: usize> Encode for [T; N] {
     default fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
         for data in self.iter() {
             data.encode(buf)?;
+        }
+        Ok(())
+    }
+}
+
+impl<T: Decode> Decode for Vec<T> {
+    fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+        let data = i32::decode_var(buf)? as usize;
+        let mut vec = Vec::with_capacity(data);
+        for i in 0..data {
+            *unsafe { vec.get_unchecked_mut(i) } = T::decode(buf)?;
+        }
+        Ok(vec)
+    }
+}
+
+impl<T: Encode> Encode for Vec<T> {
+    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+        (self.len() as u32).encode_var(buf)?;
+        for ele in self.iter() {
+            ele.encode(buf)?;
         }
         Ok(())
     }
