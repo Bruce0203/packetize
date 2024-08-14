@@ -174,7 +174,11 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 }
             }
         } else {
-            quote! { unimplemented!("there is no {} packets for {}", stringify!(#suffix), stringify!(#state_ident)) }
+            quote! { 
+                #[cfg(debug_assertion)]
+                println!("there is no {} packets for {}", stringify!(#suffix), stringify!(#state_ident));
+                return Err(());
+            }
         }
     }).collect();
     let encode_packet = if bound_packets.is_empty() {
