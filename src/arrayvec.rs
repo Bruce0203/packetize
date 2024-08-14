@@ -19,7 +19,7 @@ impl<const CAP: usize> Encode for ArrayVec<u8, CAP> {
 impl<const CAP: usize> Decode for ArrayVec<u8, CAP> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<u8, CAP>::new();
-        let (vec_len, read_len) = u32::decode_var(buf)?;
+        let (vec_len, read_len) = u32::decode_var_from_buf(buf)?;
         buf.advance(read_len);
         let vec_len = vec_len as usize;
         if buf.remaining() < vec_len {
@@ -47,7 +47,7 @@ impl<const CAP: usize> Encode for ArrayString<CAP> {
 impl<const CAP: usize> Decode for ArrayString<CAP> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut string = ArrayString::<CAP>::new();
-        let (string_len, read_len) = u32::decode_var(buf)?;
+        let (string_len, read_len) = u32::decode_var_from_buf(buf)?;
         buf.advance(read_len);
         let string_len = string_len as usize;
         if buf.remaining() < string_len {
@@ -83,7 +83,7 @@ impl<T: Encode, const CAP: usize> Encode for ArrayVec<T, CAP> {
 impl<T: Decode, const CAP: usize> Decode for ArrayVec<T, CAP> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let mut vec = ArrayVec::<T, CAP>::new();
-        let (vec_len, read_len) = u32::decode_var(buf)?;
+        let (vec_len, read_len) = u32::decode_var_from_buf(buf)?;
         buf.advance(read_len);
         let vec_len = vec_len as usize;
         if CAP < vec_len {

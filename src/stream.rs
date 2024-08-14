@@ -72,7 +72,7 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
         ID: Default,
         [(); size_of::<ID>()]:,
     {
-        let data = u32::decode_var(buf)?;
+        let data = u32::decode_var_from_buf(buf)?;
         unsafe { transmute_copy(&data) }
     }
 

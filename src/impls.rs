@@ -219,7 +219,7 @@ impl<T: Encode, const N: usize> Encode for [T; N] {
 
 impl<T: Decode> Decode for Vec<T> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
-        let (len, read_len) = i32::decode_var(buf)?;
+        let (len, read_len) = i32::decode_var_from_buf(buf)?;
         buf.advance(read_len);
         let mut vec = Vec::with_capacity(len as usize);
         for i in 0..len as usize {
