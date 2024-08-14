@@ -219,9 +219,10 @@ impl<T: Encode, const N: usize> Encode for [T; N] {
 
 impl<T: Decode> Decode for Vec<T> {
     fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
-        let data = i32::decode_var(buf)? as usize;
-        let mut vec = Vec::with_capacity(data);
-        for i in 0..data {
+        let (len, read_len) = i32::decode_var(buf)?;
+        buf.advance(read_len);
+        let mut vec = Vec::with_capacity(len as usize);
+        for i in 0..len as usize {
             *unsafe { vec.get_unchecked_mut(i) } = T::decode(buf)?;
         }
         Ok(vec)

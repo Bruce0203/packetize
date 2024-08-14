@@ -176,6 +176,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         } else {
             quote! { 
                 #[cfg(debug_assertions)]
+                #[cfg(not(feature = "no_std"))]
                 println!("there is no {} packets for {}", stringify!(#suffix), stringify!(#state_ident));
                 return Err(());
             }

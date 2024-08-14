@@ -1,3 +1,4 @@
+#![cfg(feature = "no_std")]
 #![no_std]
 
 #[cfg(feature = "stream")]
