@@ -9,7 +9,7 @@ use fastbuf::Buffer;
 use packetize::ClientBoundPacketStream;
 use packetize::{streaming_packets, Decode, Encode, SimplePacketStreamFormat};
 
-#[streaming_packets(SimplePacketStreamFormat)]
+#[streaming_packets]
 #[derive(Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum PacketStreamState {
     #[default]
@@ -38,6 +38,7 @@ state
         }
         .into(),
         buf,
+        &mut SimplePacketStreamFormat,
     )
     .unwrap();
 assert_eq!(state, PacketStreamState::Login);
