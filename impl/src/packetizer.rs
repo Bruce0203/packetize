@@ -27,7 +27,6 @@ struct PacketStream<'a> {
     ident: &'a Ident,
     attrs: &'a Vec<Attribute>,
     vis: &'a Visibility,
-    format: &'a Ident,
     states: Vec<PacketStreamState<'a>>,
     packets: Vec<Packet<'a>>,
 }
@@ -45,10 +44,9 @@ struct Packet<'a> {
     id_enforcement: Option<proc_macro2::TokenStream>,
 }
 
-pub(crate) fn streaming_packets(attr: TokenStream, input: TokenStream) -> TokenStream {
-    let format = parse_macro_input!(attr as Ident);
+pub(crate) fn streaming_packets(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemEnum);
-    let packet_stream = packet_stream_by_inputs(&format, &input);
+    let packet_stream = packet_stream_by_inputs(&input);
     let client_bound_generated = generate_by_bound(&packet_stream, CLIENT_BOUND);
     let server_bound_generated = generate_by_bound(&packet_stream, SERVER_BOUND);
     let main_body_generated = generate_main_enum_body(&packet_stream);
@@ -156,7 +154,6 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
     let bound_packets = packets_filtered_with_suffix(&packet_stream.packets, bound.suffix);
     let bound_packets_path = paths_by_packets(&bound_packets);
     let bound_packet_ident = format_ident!("{}", bound.bound_packet_ident);
-    let format = packet_stream.format;
     let quotes_of_match_case: Vec<_> =  packet_stream.states.iter().map(|state| {
         let state_ident = state.ident;
         let suffix = format_ident!("{}", bound.suffix);
@@ -165,10 +162,10 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         let state_bound_packet_paths = paths_by_packets(&state_bound_packets);
         if !state_bound_packets.is_empty() {
             quote! {
-                match <#format as packetize::PacketStreamFormat>::read_packet_id::<#state_bound_packets_name>(buf)? {
+                match format.read_packet_id::<#state_bound_packets_name>(buf)? {
                     #(
                     #state_bound_packets_name::#state_bound_packet_paths => {
-                        <#format as packetize::PacketStreamFormat>::read_packet::<Self, #state_bound_packet_paths>(self, buf)?.into()
+                        F::read_packet::<Self, #state_bound_packet_paths>(self, buf)?.into()
                     },
                     )*
                 }
@@ -189,7 +186,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             match packet {
                 #(
                 #bound_packet_ident::#bound_packets_path(p) => {
-                    <#format as packetize::PacketStreamFormat>::write_packet_with_id::<Self, #bound_packets_path>(self, p, buf)?
+                    format.write_packet_with_id::<Self, #bound_packets_path>(self, p, buf)?
                 }
                 )*
             }
@@ -211,9 +208,10 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         impl packetize::#trait_name for #packet_stream_ident {
             type BoundPacket = #bound_packet_ident;
 
-            fn #decode_fn_name(
+            fn #decode_fn_name<F: packetize::PacketStreamFormat>(
                 &mut self,
                 buf: &mut impl fastbuf::ReadBuf,
+                format: &mut F,
             ) -> Result<#bound_packet_ident, ()> {
                 #[allow(unreachable_code)]
                 Ok(match self {
@@ -225,10 +223,11 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 })
             }
 
-            fn #encode_fn_name(
+            fn #encode_fn_name<F: packetize::PacketStreamFormat>(
                 &mut self,
                 packet: &#bound_packet_ident,
-                buf: &mut impl fastbuf::WriteBuf
+                buf: &mut impl fastbuf::WriteBuf,
+                format: &mut F,
             ) -> Result<(), ()> {
                 #[allow(unreachable_code)]
                 #encode_packet
@@ -238,7 +237,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
     }
 }
 
-fn packet_stream_by_inputs<'a>(format: &'a Ident, item_enum: &'a ItemEnum) -> PacketStream<'a> {
+fn packet_stream_by_inputs<'a>(item_enum: &'a ItemEnum) -> PacketStream<'a> {
     let states: Vec<_> = item_enum
         .variants
         .iter()
@@ -251,7 +250,6 @@ fn packet_stream_by_inputs<'a>(format: &'a Ident, item_enum: &'a ItemEnum) -> Pa
     PacketStream {
         ident: &item_enum.ident,
         vis: &item_enum.vis,
-        format: &format,
         states,
         packets,
         attrs: &item_enum.attrs,

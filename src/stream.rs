@@ -1,4 +1,4 @@
-use std::mem::{transmute, transmute_copy, MaybeUninit};
+use std::mem::transmute_copy;
 
 use fastbuf::{ReadBuf, WriteBuf};
 use fastvarint::VarInt;
@@ -13,39 +13,44 @@ pub trait Packet<T> {
 pub trait ClientBoundPacketStream {
     type BoundPacket;
 
-    fn decode_client_bound_packet(
+    fn decode_client_bound_packet<F: PacketStreamFormat>(
         &mut self,
         buf: &mut impl ReadBuf,
+        format: &mut F,
     ) -> Result<Self::BoundPacket, ()>;
 
-    fn encode_client_bound_packet(
+    fn encode_client_bound_packet<F: PacketStreamFormat>(
         &mut self,
         packet: &Self::BoundPacket,
         buf: &mut impl WriteBuf,
+        format: &mut F,
     ) -> Result<(), ()>;
 }
 
 pub trait ServerBoundPacketStream {
     type BoundPacket;
-    fn decode_server_bound_packet(
+    fn decode_server_bound_packet<F: PacketStreamFormat>(
         &mut self,
         buf: &mut impl ReadBuf,
+        format: &mut F,
     ) -> Result<Self::BoundPacket, ()>;
 
-    fn encode_server_bound_packet(
+    fn encode_server_bound_packet<F: PacketStreamFormat>(
         &mut self,
         packet: &Self::BoundPacket,
         buf: &mut impl WriteBuf,
+        format: &mut F,
     ) -> Result<(), ()>;
 }
 
 pub trait PacketStreamFormat: Sized {
-    fn read_packet_id<ID>(buf: &mut impl ReadBuf) -> Result<ID, ()>
+    fn read_packet_id<ID>(&mut self, buf: &mut impl ReadBuf) -> Result<ID, ()>
     where
         ID: Default,
         [(); size_of::<ID>()]:;
 
     fn write_packet_with_id<T, P>(
+        &mut self,
         state: &mut T,
         packet: &P,
         buf: &mut impl WriteBuf,
@@ -67,7 +72,7 @@ pub trait PacketStreamFormat: Sized {
 pub struct SimplePacketStreamFormat;
 
 impl PacketStreamFormat for SimplePacketStreamFormat {
-    fn read_packet_id<ID>(buf: &mut impl ReadBuf) -> Result<ID, ()>
+    fn read_packet_id<ID>(&mut self, buf: &mut impl ReadBuf) -> Result<ID, ()>
     where
         ID: Default,
         [(); size_of::<ID>()]:,
@@ -77,6 +82,7 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
     }
 
     fn write_packet_with_id<T, P>(
+        &mut self,
         state: &mut T,
         packet: &P,
         buf: &mut impl WriteBuf,

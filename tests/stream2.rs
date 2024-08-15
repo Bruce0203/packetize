@@ -11,7 +11,7 @@ mod test {
         streaming_packets, ClientBoundPacketStream, Decode, Encode, SimplePacketStreamFormat,
     };
 
-    #[streaming_packets(SimplePacketStreamFormat)]
+    #[streaming_packets]
     #[derive(Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
     pub enum PacketStreamState {
         #[default]

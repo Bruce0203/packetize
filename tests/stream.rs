@@ -15,7 +15,7 @@ mod test {
         Encode, ServerBoundPacketStream,
     };
 
-    #[streaming_packets(SimplePacketStreamFormat)]
+    #[streaming_packets]
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
     pub enum PacketStreamState {
         HandShake(
@@ -66,14 +66,18 @@ mod test {
         let mut connection_state = PacketStreamState::HandShake;
         let mut cursor: Buffer<1000> = Buffer::new();
         connection_state
-            .encode_client_bound_packet(&value.into(), &mut cursor)
+            .encode_client_bound_packet(&value.into(), &mut cursor, &mut SimplePacketStreamFormat)
             .unwrap();
         //println!("{:?}", &cursor.filled()[cursor.pos()..]);
         assert_eq!(cursor.get_continuous(1)[0], 10);
         println!("HIa");
         assert_eq!(connection_state, PacketStreamState::Login);
         connection_state
-            .encode_server_bound_packet(&LoginRequestC2s { value: 123 }.into(), &mut cursor)
+            .encode_server_bound_packet(
+                &LoginRequestC2s { value: 123 }.into(),
+                &mut cursor,
+                &mut SimplePacketStreamFormat,
+            )
             .unwrap();
         //connection_state = PacketStreamState::HandShake;
         //let decoded: HandShakeS2c = connection_state
