@@ -32,7 +32,7 @@ fn main() {
             }
             .into(),
             buffer,
-            &mut SimplePacketStreamFormat
+            &mut SimplePacketStreamFormat,
         )
         .unwrap();
     assert_eq!(state, PacketStreamState::Login);
