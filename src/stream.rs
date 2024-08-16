@@ -58,7 +58,7 @@ pub trait PacketStreamFormat: Sized {
     where
         P: Packet<T> + Encode;
 
-    fn read_packet<T, P>(state: &mut T, buf: &mut impl ReadBuf) -> Result<P, ()>
+    fn read_packet<T, P>(&mut self, state: &mut T, buf: &mut impl ReadBuf) -> Result<P, ()>
     where
         P: Decode + Packet<T>,
     {

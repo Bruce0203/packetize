@@ -165,7 +165,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 match format.read_packet_id::<#state_bound_packets_name>(buf)? {
                     #(
                     #state_bound_packets_name::#state_bound_packet_paths => {
-                        F::read_packet::<Self, #state_bound_packet_paths>(self, buf)?.into()
+                        format.read_packet::<Self, #state_bound_packet_paths>(self, buf)?.into()
                     },
                     )*
                 }
