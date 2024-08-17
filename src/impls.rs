@@ -218,7 +218,7 @@ impl<T: Encode, const N: usize> Encode for [T; N] {
 }
 
 impl<T: Decode> Decode for Vec<T> {
-    fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+    default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let (len, read_len) = i32::decode_var_from_buf(buf)?;
         buf.advance(read_len);
         let mut vec = Vec::with_capacity(len as usize);
@@ -230,11 +230,42 @@ impl<T: Decode> Decode for Vec<T> {
 }
 
 impl<T: Encode> Encode for Vec<T> {
-    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+    default fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
         (self.len() as u32).encode_var(buf)?;
         for ele in self.iter() {
             ele.encode(buf)?;
         }
+        Ok(())
+    }
+}
+
+impl Encode for Vec<u8> {
+    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+        (self.len() as u32).encode_var(buf)?;
+        buf.try_write(self.as_slice())?;
+        Ok(())
+    }
+}
+
+impl Decode for Vec<u8> {
+    fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
+        let (len, read_len) = i32::decode_var_from_buf(buf)?;
+        buf.advance(read_len);
+        let len = len as usize;
+        let read = buf.read(len);
+        if read.len() < len {
+            return Err(());
+        }
+
+        let mut vec = Vec::with_capacity(len);
+        vec.as_mut_slice().copy_from_slice(read);
+        Ok(vec)
+    }
+}
+
+impl Encode for [u8] {
+    fn encode(&self, buf: &mut impl WriteBuf) -> Result<(), ()> {
+        buf.try_write(self)?;
         Ok(())
     }
 }
