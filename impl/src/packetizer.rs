@@ -134,11 +134,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                             #packet_stream_ident::#state => {
                                 Some(#state_packets_name::#state_bound_packet_paths as u32)
                             },
-                            _ => unimplemented!(
-                                "There is no id for '{}' packet in {}",
-                                core::any::type_name::<Self>(),
-                                stringify!(#state)
-                            ),
+                            _ => None,
                         }
                     }
 
