@@ -101,18 +101,18 @@ dependencies = [
 
 [[package]]
 name = "fastbuf"
-version = "0.24.0"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f243f6be1c7abe5b5e407d0bd3c07f278cc519679d0b483ba5f344ce7ebe9031"
+checksum = "4d9ead7a585cdef0d3ff8b1c28e63b1c3aff45aa71fe28a8e920304398ec6ffc"
 dependencies = [
  "varuint",
 ]
 
 [[package]]
 name = "fastvarint"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0614145f164fd4bad757f8b82ac4fa8b46498cbc619e89f5ed3c87d256348f7f"
+checksum = "85c90184e7ac4933c1e40e3139db06da4829ddf4ddd6f9862e9082cb7f743ae4"
 dependencies = [
  "fastbuf",
 ]
