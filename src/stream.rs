@@ -1,6 +1,6 @@
 use std::mem::transmute_copy;
 
-use fastbuf::{ReadBuf, WriteBuf};
+use fastbuf::Buf;
 use fastvarint::VarInt;
 
 use crate::{Decode, Encode};
@@ -15,14 +15,14 @@ pub trait ClientBoundPacketStream {
 
     fn decode_client_bound_packet<F: PacketStreamFormat>(
         &mut self,
-        buf: &mut impl ReadBuf,
+        buf: &mut impl Buf,
         format: &mut F,
     ) -> Result<Self::BoundPacket, ()>;
 
     fn encode_client_bound_packet<F: PacketStreamFormat>(
         &mut self,
         packet: &Self::BoundPacket,
-        buf: &mut impl WriteBuf,
+        buf: &mut impl Buf,
         format: &mut F,
     ) -> Result<(), ()>;
 }
@@ -31,20 +31,20 @@ pub trait ServerBoundPacketStream {
     type BoundPacket;
     fn decode_server_bound_packet<F: PacketStreamFormat>(
         &mut self,
-        buf: &mut impl ReadBuf,
+        buf: &mut impl Buf,
         format: &mut F,
     ) -> Result<Self::BoundPacket, ()>;
 
     fn encode_server_bound_packet<F: PacketStreamFormat>(
         &mut self,
         packet: &Self::BoundPacket,
-        buf: &mut impl WriteBuf,
+        buf: &mut impl Buf,
         format: &mut F,
     ) -> Result<(), ()>;
 }
 
 pub trait PacketStreamFormat: Sized {
-    fn read_packet_id<ID>(&mut self, buf: &mut impl ReadBuf) -> Result<ID, ()>
+    fn read_packet_id<ID>(&mut self, buf: &mut impl Buf) -> Result<ID, ()>
     where
         ID: Default,
         [(); size_of::<ID>()]:;
@@ -53,12 +53,12 @@ pub trait PacketStreamFormat: Sized {
         &mut self,
         state: &mut T,
         packet: &P,
-        buf: &mut impl WriteBuf,
+        buf: &mut impl Buf,
     ) -> Result<(), ()>
     where
         P: Packet<T> + Encode;
 
-    fn read_packet<T, P>(&mut self, state: &mut T, buf: &mut impl ReadBuf) -> Result<P, ()>
+    fn read_packet<T, P>(&mut self, state: &mut T, buf: &mut impl Buf) -> Result<P, ()>
     where
         P: Decode + Packet<T>,
     {
@@ -72,7 +72,7 @@ pub trait PacketStreamFormat: Sized {
 pub struct SimplePacketStreamFormat;
 
 impl PacketStreamFormat for SimplePacketStreamFormat {
-    fn read_packet_id<ID>(&mut self, buf: &mut impl ReadBuf) -> Result<ID, ()>
+    fn read_packet_id<ID>(&mut self, buf: &mut impl Buf) -> Result<ID, ()>
     where
         ID: Default,
         [(); size_of::<ID>()]:,
@@ -85,7 +85,7 @@ impl PacketStreamFormat for SimplePacketStreamFormat {
         &mut self,
         state: &mut T,
         packet: &P,
-        buf: &mut impl WriteBuf,
+        buf: &mut impl Buf,
     ) -> Result<(), ()>
     where
         P: Packet<T> + Encode,

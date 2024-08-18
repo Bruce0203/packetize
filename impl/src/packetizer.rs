@@ -210,7 +210,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
 
             fn #decode_fn_name<F: packetize::PacketStreamFormat>(
                 &mut self,
-                buf: &mut impl fastbuf::ReadBuf,
+                buf: &mut impl fastbuf::Buf,
                 format: &mut F,
             ) -> Result<#bound_packet_ident, ()> {
                 #[allow(unreachable_code)]
@@ -226,7 +226,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             fn #encode_fn_name<F: packetize::PacketStreamFormat>(
                 &mut self,
                 packet: &#bound_packet_ident,
-                buf: &mut impl fastbuf::WriteBuf,
+                buf: &mut impl fastbuf::Buf,
                 format: &mut F,
             ) -> Result<(), ()> {
                 #[allow(unreachable_code)]
