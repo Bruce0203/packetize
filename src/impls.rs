@@ -223,9 +223,8 @@ impl<T: Decode> Decode for Vec<T> {
         buf.advance(read_len);
         let len = len as usize;
         let mut vec = Vec::with_capacity(len);
-        unsafe { vec.set_len(len) };
-        for i in 0..len as usize {
-            *unsafe { vec.get_unchecked_mut(i) } = T::decode(buf)?;
+        for _i in 0..len as usize {
+            vec.push(T::decode(buf)?);
         }
         Ok(vec)
     }
