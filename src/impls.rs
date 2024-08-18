@@ -221,7 +221,9 @@ impl<T: Decode> Decode for Vec<T> {
     default fn decode(buf: &mut impl ReadBuf) -> Result<Self, ()> {
         let (len, read_len) = i32::decode_var_from_buf(buf)?;
         buf.advance(read_len);
-        let mut vec = Vec::with_capacity(len as usize);
+        let len = len as usize;
+        let mut vec = Vec::with_capacity(len);
+        unsafe { vec.set_len(len) };
         for i in 0..len as usize {
             *unsafe { vec.get_unchecked_mut(i) } = T::decode(buf)?;
         }
@@ -258,6 +260,7 @@ impl Decode for Vec<u8> {
         }
 
         let mut vec = Vec::with_capacity(len);
+        unsafe { vec.set_len(len) };
         vec.as_mut_slice().copy_from_slice(read);
         Ok(vec)
     }
