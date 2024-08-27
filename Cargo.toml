@@ -28,10 +28,6 @@ license = "MIT"
 packetize_derive = { path = "./impl", version = "0.96.0" }
 serde = { version = "1.0.209", features = ["derive"] }
 
-[features]
-default = []
-no_std = []
-
 [[bench]]
 name = "bench"
 harness = false
