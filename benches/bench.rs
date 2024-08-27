@@ -2,7 +2,6 @@ use std::{fmt::Debug, hint::black_box, str::FromStr};
 
 use arrayvec::ArrayString;
 use fastbuf::{Buffer, WriteBuf};
-use packetize::Encode;
 
 fn get_model() -> MyComponent {
     MyComponent {

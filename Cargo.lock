@@ -9,12 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1bec1de6f59aedf83baf9ff929c98f2ad654b97c9510f4e70cf6f661d49fd5b1"
 
 [[package]]
-name = "arrayvec"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
-
-[[package]]
 name = "bitflags"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -100,24 +94,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fastbuf"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d9ead7a585cdef0d3ff8b1c28e63b1c3aff45aa71fe28a8e920304398ec6ffc"
-dependencies = [
- "varuint",
-]
-
-[[package]]
-name = "fastvarint"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85c90184e7ac4933c1e40e3139db06da4829ddf4ddd6f9862e9082cb7f743ae4"
-dependencies = [
- "fastbuf",
-]
-
-[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -127,12 +103,6 @@ dependencies = [
  "libc",
  "wasi",
 ]
-
-[[package]]
-name = "integer-encoding"
-version = "4.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d762194228a2f1c11063e46e32e5acb96e66e906382b9eb5441f2e0504bbd5a"
 
 [[package]]
 name = "libc"
@@ -147,29 +117,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 
 [[package]]
-name = "nonmax"
-version = "0.5.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "610a5acd306ec67f907abe5567859a3c693fb9886eb1f012ab8f2a47bef3db51"
-
-[[package]]
 name = "packetize"
-version = "0.95.0"
+version = "0.96.0"
 dependencies = [
- "arrayvec",
  "divan",
- "fastbuf",
- "fastvarint",
- "integer-encoding",
- "nonmax",
  "packetize_derive",
  "rand",
- "uuid",
+ "serde",
 ]
 
 [[package]]
 name = "packetize_derive"
-version = "0.95.0"
+version = "0.96.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -253,6 +212,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde"
+version = "1.0.209"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99fce0ffe7310761ca6bf9faf5115afbc19688edd00171d81b1bb1b116c63e09"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.209"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5831b979fd7b5439637af1752d535ff49f4860c0f341d1baeb6faf0f4242170"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -278,21 +257,6 @@ name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
-
-[[package]]
-name = "uuid"
-version = "1.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81dfa00651efa65069b0b6b651f4aaa31ba9e3c3ce0137aaad053604ee7e0314"
-dependencies = [
- "getrandom",
-]
-
-[[package]]
-name = "varuint"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa87b6bf001aaee248041a8fd176b6ed105b5ff78a8d13b4aa2f644660b3031d"
 
 [[package]]
 name = "wasi"

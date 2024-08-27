@@ -2,26 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-pub use packetize_derive::{Decode, Encode};
+pub use packetize_derive::packet_stream;
 
-pub mod impls;
-#[cfg(feature = "uuid")]
-pub mod uuid;
-
-#[cfg(feature = "nonmax")]
-pub mod nonmax;
-
-#[cfg(feature = "arrayvec")]
-pub mod arrayvec;
-
-#[cfg(feature = "stream")]
-pub mod stream;
-#[cfg(feature = "stream")]
+mod stream;
 pub use crate::stream::*;
-
-mod traits;
-pub use traits::*;
-
-///TODO Warning that if packet is only one in a state, than packet struct must not unit struct
-#[cfg(feature = "stream")]
-pub use packetize_derive::streaming_packets;

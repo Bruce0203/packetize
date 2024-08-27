@@ -17,29 +17,19 @@ include = [
 members = ["impl"]
 
 [workspace.package]
-version = "0.95.0"
-description = "Efficiently encode and decode your struct"
+version = "0.96.0"
+description = "encode and decode your packet with stream channel"
 edition = "2021"
 author = "Bruce0203 <brucefreedy@gmail.com>"
 repository = "https://github.com/Bruce0203/packetize"
 license = "MIT"
 
 [dependencies]
-packetize_derive = { path = "./impl", version = "0.95.0" }
-integer-encoding = "4.0.0"
-uuid = { version = "1.10.0", features = ["v4"], optional = true }
-nonmax = { version = "0.5.5", optional = true }
-arrayvec = { version = "0.7.4", optional = true }
-fastbuf = "0.25.0"
-fastvarint = "0.10.0"
+packetize_derive = { path = "./impl", version = "0.96.0" }
+serde = { version = "1.0.209", features = ["derive"] }
 
 [features]
-default = ["uuid", "stream", "nonmax", "arrayvec"]
-uuid = ["dep:uuid"]
-stream = ["packetize_derive/stream"]
-nonmax = ["dep:nonmax"]
-minecraft = []
-arrayvec = ["dep:arrayvec"]
+default = []
 no_std = []
 
 [[bench]]

@@ -1,90 +1,39 @@
-#![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
-#![feature(variant_count)]
-#![feature(generic_arg_infer)]
+#![feature(negative_impls)]
 
-#[cfg(feature = "stream")]
-#[cfg(test)]
-mod test {
-    use std::str::FromStr;
+use packetize::packet_stream;
+use serde::{Deserialize, Serialize};
 
-    use arrayvec::ArrayString;
-    use fastbuf::{Buffer, ReadBuf};
-    use packetize::{
-        stream::SimplePacketStreamFormat, streaming_packets, ClientBoundPacketStream, Decode,
-        Encode, ServerBoundPacketStream,
-    };
-
-    #[streaming_packets]
-    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-    pub enum PacketStreamState {
-        HandShake(
-            #[change_state_to(Login)]
-            #[id(10)]
-            HandShakeS2c,
-        ),
-        Login(
-            LoginRequestC2s,
-            LoignSuccessS2c,
-            EncryptionRequestC2s,
-            EncryptionResponseS2c,
-        ),
-    }
-
-    #[derive(Encode, Decode)]
-    pub struct HandShakeS2c {
-        value: u16,
-        value2: ArrayString<123>,
-    }
-
-    #[derive(Encode, Decode)]
-    pub struct LoginRequestC2s {
-        value: u32,
-    }
-
-    #[derive(Encode, Decode)]
-    pub struct EncryptionRequestC2s {
-        value: i32,
-    }
-
-    #[derive(Encode, Decode)]
-    pub struct LoignSuccessS2c {
-        value: u32,
-    }
-
-    #[derive(Encode, Decode)]
-    pub struct EncryptionResponseS2c {
-        value: i32,
-    }
-
-    #[test]
-    fn stream_test() {
-        let value = HandShakeS2c {
-            value: 123,
-            value2: ArrayString::<123>::from_str("baba").unwrap(),
-        };
-        let mut connection_state = PacketStreamState::HandShake;
-        let mut cursor: Buffer<1000> = Buffer::new();
-        connection_state
-            .encode_client_bound_packet(&value.into(), &mut cursor, &mut SimplePacketStreamFormat)
-            .unwrap();
-        //println!("{:?}", &cursor.filled()[cursor.pos()..]);
-        assert_eq!(cursor.get_continuous(1)[0], 10);
-        println!("HIa");
-        assert_eq!(connection_state, PacketStreamState::Login);
-        connection_state
-            .encode_server_bound_packet(
-                &LoginRequestC2s { value: 123 }.into(),
-                &mut cursor,
-                &mut SimplePacketStreamFormat,
-            )
-            .unwrap();
-        //connection_state = PacketStreamState::HandShake;
-        //let decoded: HandShakeS2c = connection_state
-        //    .decode_server_bound_packet(&mut cursor)
-        //    .unwrap()
-        //    .into();
-        //assert_eq!(decoded.value, 123);
-        //println!("{:?}", &cursor.filled()[cursor.pos()..]);
-    }
+#[test]
+fn test_stream3() {
+    let conn_state = ConnState::HandShake;
+    let packet = HandShakeC2s;
+    let packet: HandShakeC2sPackets = packet.into();
 }
+
+impl ServerBoundPacket {}
+
+#[packet_stream]
+pub enum ConnState {
+    HandShake(HandShakeC2s),
+    Login(
+        #[id(0x00)] LoginStartC2s,
+        #[id(0x01)] LoginSuccessS2c,
+        #[id(0x02)] EncryptionRequestC2s,
+        #[id(0x03)] EncryptionResponseS2c,
+    ),
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct HandShakeC2s;
+
+#[derive(Serialize, Deserialize)]
+pub struct LoginStartC2s;
+
+#[derive(Serialize, Deserialize)]
+pub struct LoginSuccessS2c;
+
+#[derive(Serialize, Deserialize)]
+pub struct EncryptionRequestC2s;
+
+#[derive(Serialize, Deserialize)]
+pub struct EncryptionResponseS2c;
