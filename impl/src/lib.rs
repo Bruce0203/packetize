@@ -1,26 +1,22 @@
 use proc_macro::TokenStream;
-use quote::{format_ident, quote};
-use syn::{parse_macro_input, Attribute, Ident, ItemEnum, Meta, Path, Type, Variant, Visibility};
+use quote::{format_ident, quote, ToTokens};
+use syn::{
+    parse_macro_input, Attribute, Ident, ItemEnum, Meta, Type, TypePath, Variant, Visibility,
+};
 
 struct Bound {
     suffix: &'static str,
     bound_packet_ident: &'static str,
-    fn_name: &'static str,
-    trait_name: &'static str,
 }
 
 const CLIENT_BOUND: Bound = Bound {
     suffix: "S2c",
     bound_packet_ident: "ClientBoundPacket",
-    fn_name: "client_bound",
-    trait_name: "ClientBoundPacketStream",
 };
 
 const SERVER_BOUND: Bound = Bound {
     suffix: "C2s",
     bound_packet_ident: "ServerBoundPacket",
-    fn_name: "server_bound",
-    trait_name: "ServerBoundPacketStream",
 };
 
 struct PacketStream<'a> {
@@ -39,7 +35,7 @@ struct PacketStreamState<'a> {
 
 #[derive(Clone)]
 struct Packet<'a> {
-    ident: &'a Path,
+    ident: &'a TypePath,
     changing_state: Option<proc_macro2::TokenStream>,
     enforced_id: Option<proc_macro2::TokenStream>,
 }
@@ -171,50 +167,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
     let bound_packets = packets_filtered_with_suffix(&packet_stream.packets, bound.suffix);
     let bound_packets_path = paths_by_packets(&bound_packets);
     let bound_packet_ident = format_ident!("{}", bound.bound_packet_ident);
-    let quotes_of_match_case: Vec<_> =  packet_stream.states.iter().map(|state| {
-        let state_ident = state.ident;
-        let suffix = format_ident!("{}", bound.suffix);
-        let state_bound_packets_name = format_ident!("{state_ident}{suffix}Packets");
-        let state_bound_packets = packets_filtered_with_suffix(&state.packets, bound.suffix);
-        let state_bound_packet_paths = paths_by_packets(&state_bound_packets);
-        if !state_bound_packets.is_empty() {
-            quote! {
-                match format.read_packet_id::<#state_bound_packets_name>(buf)? {
-                    #(
-                    #state_bound_packets_name::#state_bound_packet_paths => {
-                        format.read_packet::<Self, #state_bound_packet_paths>(self, buf)?.into()
-                    },
-                    )*
-                }
-            }
-        } else {
-            quote! { 
-                #[cfg(debug_assertions)]
-                #[cfg(not(feature = "no_std"))]
-                println!("there is no {} packets for {}", stringify!(#suffix), stringify!(#state_ident));
-                return Err(());
-            }
-        }
-    }).collect();
-    let encode_packet = if bound_packets.is_empty() {
-        None
-    } else {
-        Some(quote! {
-            match packet {
-                #(
-                #bound_packet_ident::#bound_packets_path(p) => {
-                    format.write_packet_with_id::<Self, #bound_packets_path>(self, p, buf)?
-                }
-                )*
-            }
-        })
-    };
-
     let vis = packet_stream.vis;
-    let state_idents: Vec<&Ident> = idents_by_states(&packet_stream.states);
-    let decode_fn_name = format_ident!("decode_{}_packet", bound.fn_name);
-    let encode_fn_name = format_ident!("encode_{}_packet", bound.fn_name);
-    let trait_name = format_ident!("{}", bound.trait_name);
     quote! {
         #(#state_quotes)*
 
@@ -222,36 +175,6 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         #vis enum #bound_packet_ident {
             #(#bound_packets_path(#bound_packets_path),)*
         }
-
-        // impl packetize::#trait_name for #packet_stream_ident {
-        //     type BoundPacket = #bound_packet_ident;
-
-        //     fn #decode_fn_name<F: packetize::PacketStreamFormat>(
-        //         &mut self,
-        //         buf: &mut impl fastbuf::Buf,
-        //         format: &mut F,
-        //     ) -> Result<#bound_packet_ident, ()> {
-        //         #[allow(unreachable_code)]
-        //         Ok(match self {
-        //             #(
-        //             #packet_stream_ident::#state_idents => {
-        //                 #quotes_of_match_case
-        //             }
-        //             )*
-        //         })
-        //     }
-
-        //     fn #encode_fn_name<F: packetize::PacketStreamFormat>(
-        //         &mut self,
-        //         packet: &#bound_packet_ident,
-        //         buf: &mut impl fastbuf::Buf,
-        //         format: &mut F,
-        //     ) -> Result<(), ()> {
-        //         #[allow(unreachable_code)]
-        //         #encode_packet
-        //         Ok(())
-        //     }
-        // }
     }
 }
 
@@ -286,7 +209,7 @@ fn packet_stream_state_by_enum_variant(enum_variant: &Variant) -> PacketStreamSt
             .iter()
             .map(|field| Packet {
                 ident: match &field.ty {
-                    Type::Path(path) => &path.path,
+                    Type::Path(path) => path,
                     _ => unimplemented!("type must path"),
                 },
                 changing_state: find_ident_in_attrs(&field.attrs, "change_state_to").map(|attr| {
@@ -295,15 +218,13 @@ fn packet_stream_state_by_enum_variant(enum_variant: &Variant) -> PacketStreamSt
                         _ => panic!("attribute needs single value input"),
                     }
                 }),
-                enforced_id: find_ident_in_attrs(&field.attrs, "id").map(|attr| {
-                    match attr.meta {
-                        syn::Meta::List(list) => {
-                            let tokens = list.tokens;
-                            quote! { = #tokens }
-                        }
-                        _ => panic!("attribute needs single value input"),
+                enforced_id: find_ident_in_attrs(&field.attrs, "id").map(|attr| match attr.meta {
+                    syn::Meta::List(list) => {
+                        let tokens = list.tokens;
+                        quote! { = #tokens }
                     }
-                })           
+                    _ => panic!("attribute needs single value input"),
+                }),
             })
             .collect(),
         attrs: &enum_variant.attrs,
@@ -326,7 +247,7 @@ fn find_ident_in_attrs<'a>(attrs: &'a Vec<Attribute>, ident: &'static str) -> Op
         .map(|v| v.clone())
 }
 
-fn paths_by_packets<'a>(packets: &Vec<&Packet<'a>>) -> Vec<&'a Path> {
+fn paths_by_packets<'a>(packets: &Vec<&Packet<'a>>) -> Vec<&'a TypePath> {
     packets.iter().map(|packet| packet.ident).collect()
 }
 
@@ -346,8 +267,7 @@ fn packets_filtered_with_suffix<'a>(
         .filter(|packet| {
             packet
                 .ident
-                .get_ident()
-                .unwrap()
+                .to_token_stream()
                 .to_string()
                 .ends_with(ends_with)
         })

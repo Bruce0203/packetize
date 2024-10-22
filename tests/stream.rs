@@ -1,5 +1,7 @@
 #![feature(negative_impls)]
 
+use std::marker::PhantomData;
+
 use packetize::packet_stream;
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +22,7 @@ pub enum ConnState {
         #[id(0x01)] LoginSuccessS2c,
         #[id(0x02)] EncryptionRequestC2s,
         #[id(0x03)] EncryptionResponseS2c,
+        #[id(0x04)] TestPacketS2c<'a>,
     ),
 }
 
@@ -37,3 +40,6 @@ pub struct EncryptionRequestC2s;
 
 #[derive(Serialize, Deserialize)]
 pub struct EncryptionResponseS2c;
+
+#[derive(Serialize, Deserialize)]
+pub struct TestPacketS2c<'a>(PhantomData<&'a ()>);
