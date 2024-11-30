@@ -89,7 +89,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 Some(quote! { #[repr(u32)] })
             };
             let packets_enum = quote! {
-                #[cfg_attr(feature = "serialization", derive(serialization::Serializable))]
+                #[cfg_attr(feature = "serialization", deriveserialization::Serializable))]
                 #repr_attr
                 #vis enum #state_packets_name {
                     #(#state_bound_packet_paths(#state_bound_packet_paths) #state_bound_packet_ids,)*

@@ -32,6 +32,7 @@ packetize_derive = { path = "./impl", version = "0.100.0" }
 serialization = { workspace = true, optional = true }
 
 [features]
+default = ["serialization"]
 serialization = ["dep:serialization"]
 
 [[bench]]
