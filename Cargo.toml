@@ -29,11 +29,11 @@ serialization = { git = "https://github.com/Bruce0203/serialization" }
 
 [dependencies]
 packetize_derive = { path = "./impl", version = "0.100.0" }
-serialization = { workspace = true, optional = true }
+serialization = { workspace = true }
 
 [features]
 default = ["serialization"]
-serialization = ["dep:serialization"]
+serialization = []
 
 [[bench]]
 name = "bench"
