@@ -3,7 +3,7 @@
 use std::marker::PhantomData;
 
 use packetize::packet_stream;
-use serde::{Deserialize, Serialize};
+use serialization::Serializable;
 
 #[test]
 fn test_stream3() {
@@ -26,20 +26,20 @@ pub enum ConnState {
     ),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serializable)]
 pub struct HandShakeC2s;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serializable)]
 pub struct LoginStartC2s;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serializable)]
 pub struct LoginSuccessS2c;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serializable)]
 pub struct EncryptionRequestC2s;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serializable)]
 pub struct EncryptionResponseS2c;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serializable)]
 pub struct TestPacketS2c<'a>(PhantomData<&'a ()>);

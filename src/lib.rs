@@ -4,5 +4,7 @@
 
 pub use packetize_derive::packet_stream;
 
-mod stream;
-pub use crate::stream::*;
+pub trait Packet<T> {
+    fn get_id(state: &T) -> Option<u32>;
+    fn is_changing_state() -> Option<T>;
+}

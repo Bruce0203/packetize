@@ -8,7 +8,6 @@ use std::prelude::rust_2021::*;
 #[macro_use]
 extern crate std;
 use packetize::packet_stream;
-use serde::{Deserialize, Serialize};
 #[allow(dead_code)]
 pub enum ConnState {
     Test,
