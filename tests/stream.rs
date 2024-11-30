@@ -16,7 +16,7 @@ impl ServerBoundPacket {}
 
 #[packet_stream]
 pub enum ConnState {
-    HandShake(HandShakeC2s, SomePacketS2c),
+    HandShake(HandShakeC2s),
     Login(
         #[id(0x00)] LoginStartC2s,
         #[id(0x01)] LoginSuccessS2c,
@@ -24,10 +24,6 @@ pub enum ConnState {
         #[id(0x03)] EncryptionResponseS2c,
         #[id(0x04)] TestPacketS2c<'a>,
     ),
-}
-
-fn asdf() {
-    ClientBoundPacket::SomePacketS2c(SomePacketS2c).encode(encoder)?;
 }
 
 #[derive(Serializable)]
