@@ -3,7 +3,7 @@
 use std::marker::PhantomData;
 
 use packetize::packet_stream;
-use serialization::Serializable;
+use serialization::{Encode, Serializable};
 
 #[test]
 fn test_stream3() {
@@ -16,7 +16,7 @@ impl ServerBoundPacket {}
 
 #[packet_stream]
 pub enum ConnState {
-    HandShake(HandShakeC2s),
+    HandShake(HandShakeC2s, SomePacketS2c),
     Login(
         #[id(0x00)] LoginStartC2s,
         #[id(0x01)] LoginSuccessS2c,
@@ -26,8 +26,15 @@ pub enum ConnState {
     ),
 }
 
+fn asdf() {
+    ClientBoundPacket::SomePacketS2c(SomePacketS2c).encode(encoder)?;
+}
+
 #[derive(Serializable)]
 pub struct HandShakeC2s;
+
+#[derive(Serializable)]
+pub struct SomePacketS2c;
 
 #[derive(Serializable)]
 pub struct LoginStartC2s;

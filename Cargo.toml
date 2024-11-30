@@ -42,7 +42,6 @@ harness = false
 [dev-dependencies]
 rand = "0.8.5"
 divan = "0.1.14"
-serialization.workspace = true
 
 [profile.bench]
 lto = true
