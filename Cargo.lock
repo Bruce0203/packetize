@@ -150,7 +150,7 @@ checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 
 [[package]]
 name = "packetize"
-version = "0.98.0"
+version = "0.100.0"
 dependencies = [
  "divan",
  "packetize_derive",
@@ -160,7 +160,7 @@ dependencies = [
 
 [[package]]
 name = "packetize_derive"
-version = "0.98.0"
+version = "0.100.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -251,9 +251,8 @@ checksum = "a3f0bf26fd526d2a95683cd0f87bf103b8539e2ca1ef48ce002d67aad59aa0b4"
 
 [[package]]
 name = "serialization"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "378ed40245fa7685ffeb9b899945581c5f1859cefa09bdd0639aa1ca47ccbbe4"
+version = "0.1.6"
+source = "git+https://github.com/Bruce0203/serialization#dc4fe406c17e967d1db2a399f4f1f596d5dfe198"
 dependencies = [
  "arrayvec",
  "concat-idents-bruce0203",
@@ -265,9 +264,8 @@ dependencies = [
 
 [[package]]
 name = "serialization_derive"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bae297a210d3df8ce70a36256e827fac86b5bf0d9509a4f21781e1796fffe7a2"
+version = "0.1.6"
+source = "git+https://github.com/Bruce0203/serialization#dc4fe406c17e967d1db2a399f4f1f596d5dfe198"
 dependencies = [
  "proc-macro2",
  "quote",
