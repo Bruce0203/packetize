@@ -26,29 +26,27 @@ pub enum ConnState {
     ),
 }
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct HandShakeC2s;
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct SomePacketS2c;
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct LoginStartC2s;
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct LoginSuccessS2c;
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct EncryptionRequestC2s;
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct EncryptionResponseS2c;
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct TestPacketS2c<'a>(PhantomData<&'a ()>);
 
 fn test() {
     let v: ServerBoundPacket = todo!();
-    let id = Packet::is_changing_state(&v);
-    let value = ServerBoundPacket::decode_packet(todo!(), &mut ConnState::Login).unwrap();
 }

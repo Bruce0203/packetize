@@ -24,7 +24,6 @@ struct PacketStream<'a> {
     attrs: &'a Vec<Attribute>,
     vis: &'a Visibility,
     states: Vec<PacketStreamState<'a>>,
-    packets: Vec<Packet<'a>>,
 }
 
 struct PacketStreamState<'a> {
@@ -64,6 +63,7 @@ fn generate_main_enum_body(packet_stream: &PacketStream) -> proc_macro2::TokenSt
     quote! {
         #(#attrs)*
         #[allow(dead_code)]
+        #[cfg_attr(feature = "std", derive(Debug))]
         #vis enum #packet_stream_ident {
             #(#(#state_attrs)* #state_idents,)*
         }
@@ -89,6 +89,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             };
             let packets_enum = quote! {
                 #[derive(serialization::Serializable)]
+                #[cfg_attr(feature = "std", derive(Debug))]
                 #repr_attr
                 #vis enum #state_packets_name {
                     #(#state_bound_packet_paths(#state_bound_packet_paths) #state_bound_packet_ids,)*
@@ -219,6 +220,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             #(#state_quotes)*
 
             #[derive(serialization::Serializable)]
+            #[cfg_attr(feature = "std", derive(Debug))]
             #vis enum #bound_packet_ident {
                 #(#state_packet_names(#state_packet_names),)*
             }
@@ -291,15 +293,10 @@ fn packet_stream_by_inputs<'a>(item_enum: &'a ItemEnum) -> PacketStream<'a> {
         .iter()
         .map(|enum_variant| packet_stream_state_by_enum_variant(enum_variant))
         .collect();
-    let packets: Vec<Packet> = states.iter().fold(Vec::new(), |mut acc, state| {
-        acc.append(&mut state.packets.clone());
-        acc
-    });
     PacketStream {
         ident: &item_enum.ident,
         vis: &item_enum.vis,
         states,
-        packets,
         attrs: &item_enum.attrs,
     }
 }

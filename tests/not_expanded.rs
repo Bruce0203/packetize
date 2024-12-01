@@ -6,9 +6,9 @@ pub enum ConnState {
     Test(TestPacketS2c, TestPacketC2s),
 }
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct TestPacketC2s;
 
-#[derive(Serializable)]
+#[derive(Debug, Serializable)]
 pub struct TestPacketS2c;
 
