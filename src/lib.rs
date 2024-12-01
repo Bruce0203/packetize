@@ -17,8 +17,8 @@ pub trait EncodePacket<T> {
     ) -> Result<(), E::Error>;
 }
 
-pub trait DecodePacket<T>: Sized {
-    fn decode_packet<'de, D: serialization::Decoder<'de>>(
+pub trait DecodePacket<'de, T>: Sized {
+    fn decode_packet<D: serialization::Decoder<'de>>(
         decoder: D,
         state: &mut T,
     ) -> Result<Self, D::Error>;

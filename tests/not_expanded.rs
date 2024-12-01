@@ -11,4 +11,3 @@ pub struct TestPacketC2s;
 
 #[derive(Debug, Serializable)]
 pub struct TestPacketS2c;
-
