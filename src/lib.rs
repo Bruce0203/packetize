@@ -9,7 +9,6 @@ pub trait Packet<T> {
     fn is_changing_state(&self) -> Option<T>;
 }
 
-#[cfg(feature = "serialization")]
 pub trait EncodePacket<T> {
     fn encode_packet<E: serialization::Encoder>(
         &self,
@@ -18,7 +17,6 @@ pub trait EncodePacket<T> {
     ) -> Result<(), E::Error>;
 }
 
-#[cfg(feature = "serialization")]
 pub trait DecodePacket<T>: Sized {
     fn decode_packet<'de, D: serialization::Decoder<'de>>(
         decoder: D,
