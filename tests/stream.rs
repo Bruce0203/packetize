@@ -2,7 +2,7 @@
 
 use std::marker::PhantomData;
 
-use packetize::{packet_stream, Packet};
+use packetize::{packet_stream, DecodePacket, Packet};
 use serialization::{Encode, Serializable};
 
 #[test]
@@ -50,4 +50,5 @@ pub struct TestPacketS2c<'a>(PhantomData<&'a ()>);
 fn test() {
     let v: ServerBoundPacket = todo!();
     let id = Packet::is_changing_state(&v);
+    let value = ServerBoundPacket::decode_packet(todo!(), &mut ConnState::Login).unwrap();
 }
