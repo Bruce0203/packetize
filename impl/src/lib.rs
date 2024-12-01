@@ -80,8 +80,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             let state_bound_packets = packets_filtered_with_suffix(&state.packets, bound.suffix);
             let state_bound_packet_paths = paths_by_packets(&state_bound_packets);
             let state = state.ident;
-            let suffix = format_ident!("{}", bound.suffix);
-            let state_packets_name = format_ident!("{state_ident}{suffix}Packets");
+            let state_packets_name = format_ident!("{state_ident}{}Packets", bound.suffix);
             let vis = packet_stream.vis;
             let bound_packets = format_ident!("{}", bound.bound_packet_ident);
             let state_bound_packet_ids = ids_by_packets(&state_bound_packets);
@@ -111,13 +110,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
 
                 impl From<#state_packets_name> for #bound_packets {
                     fn from(value: #state_packets_name) -> Self {
-                        match value {
-                            #(
-                                #state_packets_name::#state_bound_packet_paths(v) => {
-                                    #bound_packets::#state_bound_packet_paths(v)
-                                }
-                            )*
-                        }
+                        #bound_packets::#state_packets_name(value)
                     }
                 }
 
@@ -137,10 +130,21 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                         match self {
                             #(
                                 #state_packets_name::#state_bound_packet_paths(value) => {
-                                    packetize::Packet::<#packet_stream_ident>::is_changing_state(value)
+                                    <#state_bound_packet_paths as packetize::Packet::<#packet_stream_ident>>::is_changing_state(value)
                                 }
                             )*
                             _ => unreachable!()
+                        }
+                    }
+                }
+
+                impl TryFrom<#bound_packets> for #state_packets_name {
+                    type Error = ();
+
+                    fn try_from(value: #bound_packets) -> Result<Self, Self::Error> {
+                        match value {
+                            #bound_packets::#state_packets_name(value) => Ok(value),
+                            _ => Err(())?,
                         }
                     }
                 }
@@ -154,7 +158,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
 
                 impl From<#state_bound_packet_paths> for #bound_packets {
                     fn from(value: #state_bound_packet_paths) -> Self {
-                        #bound_packets::#state_bound_packet_paths(value)
+                        #bound_packets::#state_packets_name(#state_packets_name::#state_bound_packet_paths(value))
                     }
                 }
 
@@ -163,7 +167,18 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
 
                     fn try_from(value: #bound_packets) -> Result<Self, Self::Error> {
                         match value {
-                            #bound_packets::#state_bound_packet_paths(value) => Ok(value),
+                            #bound_packets::#state_packets_name(value) => Ok(value.try_into()?),
+                            _ => Err(())?,
+                        }
+                    }
+                }
+
+                impl TryFrom<#state_packets_name> for #state_bound_packet_paths {
+                    type Error = ();
+
+                    fn try_from(value: #state_packets_name) -> Result<Self, Self::Error> {
+                        match value {
+                            #state_packets_name::#state_bound_packet_paths(value) => Ok(value),
                             _ => Err(())?,
                         }
                     }
@@ -188,42 +203,88 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         })
         .collect();
 
-    let bound_packets = packets_filtered_with_suffix(&packet_stream.packets, bound.suffix);
-    let bound_packets_path = paths_by_packets(&bound_packets);
     let bound_packet_ident = format_ident!("{}", bound.bound_packet_ident);
+    let state_packet_names = packet_stream
+        .states
+        .iter()
+        .map(|state| format_ident!("{}{}Packets", state.ident, bound.suffix))
+        .collect::<Vec<_>>();
+    let state_names = packet_stream
+        .states
+        .iter()
+        .map(|state| state.ident)
+        .collect::<Vec<_>>();
     let vis = packet_stream.vis;
     quote! {
-        #(#state_quotes)*
+            #(#state_quotes)*
 
-        #[derive(serialization::Serializable)]
-        #vis enum #bound_packet_ident {
-            #(#bound_packets_path(#bound_packets_path),)*
-        }
+            #[derive(serialization::Serializable)]
+            #vis enum #bound_packet_ident {
+                #(#state_packet_names(#state_packet_names),)*
+            }
 
-        impl packetize::Packet<#packet_stream_ident> for #bound_packet_ident {
-            fn get_id(&self, state: &#packet_stream_ident) -> Option<u32> {
-                match self {
-                    #(
-                        #bound_packet_ident::#bound_packets_path(value) => {
-                            packetize::Packet::<#packet_stream_ident>::get_id(value, state)
-                        }
-                    )*
-                    _ => unreachable!()
+            impl packetize::Packet<#packet_stream_ident> for #bound_packet_ident {
+                fn get_id(&self, state: &#packet_stream_ident) -> Option<u32> {
+                    match self {
+                        #(
+                            #bound_packet_ident::#state_packet_names(value) => {
+                                packetize::Packet::<#packet_stream_ident>::get_id(value, state)
+                            }
+                        )*
+                        _ => unreachable!()
+                    }
+                }
+
+                fn is_changing_state(&self) -> Option<#packet_stream_ident> {
+                    match self {
+                        #(
+                            #bound_packet_ident::#state_packet_names(value) => {
+                                <#state_packet_names as packetize::Packet::<#packet_stream_ident>>::is_changing_state(value)
+                            }
+                        )*
+                        _ => unreachable!()
+                    }
                 }
             }
 
-            fn is_changing_state(&self) -> Option<#packet_stream_ident> {
-                match self {
-                    #(
-                        #bound_packet_ident::#bound_packets_path(value) => {
-                            packetize::Packet::<#packet_stream_ident>::is_changing_state(value)
-                        }
-                    )*
-                    _ => unreachable!()
-                }
+    #[cfg(feature = "serialization")]
+    impl packetize::DecodePacket<#packet_stream_ident> for #bound_packet_ident {
+        fn decode_packet<'de, D: serialization::Decoder<'de>>(
+            decoder: D,
+            state: &mut #packet_stream_ident,
+        ) -> Result<Self, D::Error> {
+            let result: Self = match state {
+                #(
+                #packet_stream_ident::#state_names =>
+                    <#state_packet_names as serialization::Decode::<'de>>::decode(decoder)?.into(),
+                )*
+            };
+            if let Some(new_state) = <Self as packetize::Packet::<#packet_stream_ident>>::is_changing_state(&result) {
+                *state = new_state;
             }
+            Ok(result)
         }
     }
+
+    #[cfg(feature = "serialization")]
+    impl packetize::EncodePacket<#packet_stream_ident> for #bound_packet_ident {
+        fn encode_packet<E: serialization::Encoder>(
+            &self,
+            encoder: E,
+            state: &mut #packet_stream_ident,
+        ) -> Result<(), E::Error> {
+            if let Some(new_state) = <Self as packetize::Packet::<#packet_stream_ident>>::is_changing_state(self) {
+                *state = new_state;
+            }
+            match self {
+                #(
+                #bound_packet_ident::#state_packet_names(value) => serialization::Encode::encode(value, encoder)?,
+                )*
+            };
+            Ok(())
+        }
+    }
+        }
 }
 
 fn packet_stream_by_inputs<'a>(item_enum: &'a ItemEnum) -> PacketStream<'a> {

@@ -8,3 +8,20 @@ pub trait Packet<T> {
     fn get_id(&self, state: &T) -> Option<u32>;
     fn is_changing_state(&self) -> Option<T>;
 }
+
+#[cfg(feature = "serialization")]
+pub trait EncodePacket<T> {
+    fn encode_packet<E: serialization::Encoder>(
+        &self,
+        encoder: E,
+        state: &mut T,
+    ) -> Result<(), E::Error>;
+}
+
+#[cfg(feature = "serialization")]
+pub trait DecodePacket<T>: Sized {
+    fn decode_packet<'de, D: serialization::Decoder<'de>>(
+        decoder: D,
+        state: &mut T,
+    ) -> Result<Self, D::Error>;
+}
