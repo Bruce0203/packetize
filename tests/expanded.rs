@@ -44,13 +44,13 @@ impl<'a> TryFrom<ClientBoundPacket<'a>> for TestPacketS2c<'a> {
     }
 }
 impl packetize::Packet<ConnState> for TestPacketS2c<'_> {
-    fn get_id(state: &ConnState) -> Option<u32> {
+    fn get_id(&self, state: &ConnState) -> Option<u32> {
         match state {
             ConnState::Test => Some(TestS2cPackets::TestPacketS2c as u32),
             _ => None,
         }
     }
-    fn is_changing_state() -> Option<ConnState> {
+    fn is_changing_state(&self) -> Option<ConnState> {
         None
     }
 }
@@ -89,13 +89,13 @@ impl TryFrom<ServerBoundPacket> for TestPacketC2s {
     }
 }
 impl packetize::Packet<ConnState> for TestPacketC2s {
-    fn get_id(state: &ConnState) -> Option<u32> {
+    fn get_id(&self, state: &ConnState) -> Option<u32> {
         match state {
             ConnState::Test => Some(TestC2sPackets::TestPacketC2s as u32),
             _ => None,
         }
     }
-    fn is_changing_state() -> Option<ConnState> {
+    fn is_changing_state(&self) -> Option<ConnState> {
         None
     }
 }

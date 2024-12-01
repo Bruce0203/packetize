@@ -121,6 +121,30 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                     }
                 }
 
+                impl packetize::Packet<#packet_stream_ident> for #state_packets_name {
+                    fn get_id(&self, state: &#packet_stream_ident) -> Option<u32> {
+                        match self {
+                            #(
+                                #state_packets_name::#state_bound_packet_paths(value) => {
+                                    packetize::Packet::<#packet_stream_ident>::get_id(value, state)
+                                }
+                            )*
+                            _ => unreachable!()
+                        }
+                    }
+
+                    fn is_changing_state(&self) -> Option<#packet_stream_ident> {
+                        match self {
+                            #(
+                                #state_packets_name::#state_bound_packet_paths(value) => {
+                                    packetize::Packet::<#packet_stream_ident>::is_changing_state(value)
+                                }
+                            )*
+                            _ => unreachable!()
+                        }
+                    }
+                }
+
                 #(
                 impl From<#state_bound_packet_paths> for #state_packets_name {
                     fn from(value: #state_bound_packet_paths) -> Self {
@@ -146,7 +170,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 }
 
                 impl packetize::Packet<#packet_stream_ident> for #state_bound_packet_paths {
-                    fn get_id(state: &#packet_stream_ident) -> Option<u32> {
+                    fn get_id(&self, state: &#packet_stream_ident) -> Option<u32> {
                         match state {
                             #packet_stream_ident::#state => {
                                 Some(#state_packets_name::#state_bound_packet_paths as u32)
@@ -155,7 +179,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                         }
                     }
 
-                    fn is_changing_state() -> Option<#packet_stream_ident> {
+                    fn is_changing_state(&self) -> Option<#packet_stream_ident> {
                         #changing_state_stmt
                     }
                 }
@@ -174,6 +198,30 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         #[derive(serialization::Serializable)]
         #vis enum #bound_packet_ident {
             #(#bound_packets_path(#bound_packets_path),)*
+        }
+
+        impl packetize::Packet<#packet_stream_ident> for #bound_packet_ident {
+            fn get_id(&self, state: &#packet_stream_ident) -> Option<u32> {
+                match self {
+                    #(
+                        #bound_packet_ident::#bound_packets_path(value) => {
+                            packetize::Packet::<#packet_stream_ident>::get_id(value, state)
+                        }
+                    )*
+                    _ => unreachable!()
+                }
+            }
+
+            fn is_changing_state(&self) -> Option<#packet_stream_ident> {
+                match self {
+                    #(
+                        #bound_packet_ident::#bound_packets_path(value) => {
+                            packetize::Packet::<#packet_stream_ident>::is_changing_state(value)
+                        }
+                    )*
+                    _ => unreachable!()
+                }
+            }
         }
     }
 }

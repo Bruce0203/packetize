@@ -5,6 +5,6 @@
 pub use packetize_derive::packet_stream;
 
 pub trait Packet<T> {
-    fn get_id(state: &T) -> Option<u32>;
-    fn is_changing_state() -> Option<T>;
+    fn get_id(&self, state: &T) -> Option<u32>;
+    fn is_changing_state(&self) -> Option<T>;
 }
