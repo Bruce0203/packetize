@@ -72,4 +72,3 @@ enum Bar<'a> {
 fn asdf9() {}
 
 struct A<'a>(PhantomData<&'a ()>);
-

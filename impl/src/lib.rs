@@ -30,7 +30,6 @@ struct PacketStream<'a> {
 struct PacketStreamState<'a> {
     attrs: &'a Vec<Attribute>,
     ident: &'a Ident,
-    has_state_lifetime: bool,
     packets: Vec<Packet<'a>>,
 }
 
@@ -271,7 +270,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 }
             }
 
-    impl<'de: #bound_packet_lifetime_without_bracket, #bound_packet_lifetime_without_bracket> 
+    impl<'de: #bound_packet_lifetime_without_bracket, #bound_packet_lifetime_without_bracket>
         packetize::DecodePacket<'de, #packet_stream_ident> for #bound_packet_ident #bound_packet_lifetime {
         fn decode_packet<D: serialization::Decoder<'de>>(
             decoder: D,
@@ -329,7 +328,6 @@ fn idents_by_states<'a>(states: &Vec<PacketStreamState<'a>>) -> Vec<&'a Ident> {
 }
 
 fn packet_stream_state_by_enum_variant(enum_variant: &mut Variant) -> PacketStreamState {
-    let mut has_state_lifetime = false;
     PacketStreamState {
         ident: &enum_variant.ident,
         packets: enum_variant
@@ -342,7 +340,6 @@ fn packet_stream_state_by_enum_variant(enum_variant: &mut Variant) -> PacketStre
                         Type::Path(path) => {
                             if path.path.get_ident().is_none() {
                                 has_lifetime = true;
-                                has_state_lifetime = true;
                             }
                             let ref mut value = path.path.segments;
                             for segment in value.iter_mut() {
@@ -372,7 +369,6 @@ fn packet_stream_state_by_enum_variant(enum_variant: &mut Variant) -> PacketStre
             })
             .collect(),
         attrs: &enum_variant.attrs,
-        has_state_lifetime,
     }
 }
 
