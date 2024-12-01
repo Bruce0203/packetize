@@ -63,7 +63,7 @@ fn generate_main_enum_body(packet_stream: &PacketStream) -> proc_macro2::TokenSt
     quote! {
         #(#attrs)*
         #[allow(dead_code)]
-        #[cfg_attr(feature = "std", derive(Debug))]
+        #[derive(Debug)]
         #vis enum #packet_stream_ident {
             #(#(#state_attrs)* #state_idents,)*
         }
@@ -89,7 +89,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             };
             let packets_enum = quote! {
                 #[derive(serialization::Serializable)]
-                #[cfg_attr(feature = "std", derive(Debug))]
+                #[derive(Debug)]
                 #repr_attr
                 #vis enum #state_packets_name {
                     #(#state_bound_packet_paths(#state_bound_packet_paths) #state_bound_packet_ids,)*
@@ -220,7 +220,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             #(#state_quotes)*
 
             #[derive(serialization::Serializable)]
-            #[cfg_attr(feature = "std", derive(Debug))]
+            #[derive(Debug)]
             #vis enum #bound_packet_ident {
                 #(#state_packet_names(#state_packet_names),)*
             }
