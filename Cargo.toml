@@ -24,12 +24,9 @@ author = "Bruce0203 <brucefreedy@gmail.com>"
 repository = "https://github.com/Bruce0203/packetize"
 license = "MIT"
 
-[workspace.dependencies]
-serialization = { git = "https://github.com/Bruce0203/serialization" }
-
 [dependencies]
 packetize_derive = { path = "./impl", version = "0.100.0" }
-serialization = { workspace = true }
+serialization = { git = "https://github.com/Bruce0203/serialization" }
 
 [features]
 default = ["serialization", "std"]
