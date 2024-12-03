@@ -212,6 +212,7 @@ dependencies = [
  "divan",
  "packetize_derive",
  "rand",
+ "serde",
  "serialization",
 ]
 

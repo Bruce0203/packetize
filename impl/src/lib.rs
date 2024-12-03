@@ -48,6 +48,17 @@ pub fn packet_stream(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let client_bound_generated = generate_by_bound(&packet_stream, CLIENT_BOUND);
     let server_bound_generated = generate_by_bound(&packet_stream, SERVER_BOUND);
     let main_body_generated = generate_main_enum_body(&packet_stream);
+
+    println!(
+        "{}",
+        quote! {
+            #main_body_generated
+            #client_bound_generated
+            #server_bound_generated
+        }
+        .to_token_stream()
+        .to_string()
+    );
     quote! {
         #main_body_generated
         #client_bound_generated
@@ -63,6 +74,7 @@ fn generate_main_enum_body(packet_stream: &PacketStream) -> proc_macro2::TokenSt
     let attrs = packet_stream.attrs;
     let state_attrs = attrs_by_states(&packet_stream.states);
     quote! {
+        #[doc = " something happens?"]
         #(#attrs)*
         #[allow(dead_code)]
         #[derive(Debug)]

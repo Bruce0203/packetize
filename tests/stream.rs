@@ -12,6 +12,8 @@ fn test_stream3() {
     let packet: HandShakeC2sPackets = packet.into();
 }
 
+/// sounds great
+/// my awesome comment
 #[packet_stream]
 pub enum ConnState {
     HandShake(HandShakeC2s),
