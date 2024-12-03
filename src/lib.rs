@@ -15,6 +15,17 @@ pub trait EncodePacket<T> {
         encoder: E,
         state: &mut T,
     ) -> Result<(), E::Error>;
+
+    fn encode_packet2<P, E: serialization::Encoder>(
+        packet: P,
+        encoder: E,
+        state: &mut T,
+    ) -> Result<(), E::Error>
+    where
+        P: Packet<T>,
+    {
+        Ok(())
+    }
 }
 
 pub trait DecodePacket<'de, T>: Sized {

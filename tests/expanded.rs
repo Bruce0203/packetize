@@ -1,3 +1,4 @@
+#![allow(warnings, unused)]
 #![feature(test)]
 #![feature(coverage_attribute)]
 #![feature(panic_internals)]

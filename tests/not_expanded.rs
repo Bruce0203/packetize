@@ -1,3 +1,4 @@
+#![allow(warnings, unused)]
 use packetize::packet_stream;
 use serialization::Serializable;
 
