@@ -31,8 +31,8 @@ serialization = { git = "https://github.com/Bruce0203/serialization" }
 
 [features]
 default = ["serialization", "std"]
-std = []
-serialization = []
+std = ["packetize_derive/std"]
+serialization = ["packetize_derive/serialization"]
 
 [[bench]]
 name = "bench"
