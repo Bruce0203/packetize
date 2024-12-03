@@ -30,7 +30,7 @@ serde = "1.0.215"
 serialization = { git = "https://github.com/Bruce0203/serialization" }
 
 [features]
-default = ["serialization", "std"]
+default = ["serialization", "std", "serialization"]
 std = ["packetize_derive/std"]
 serialization = ["packetize_derive/serialization"]
 
