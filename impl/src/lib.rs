@@ -64,10 +64,8 @@ fn generate_main_enum_body(packet_stream: &PacketStream) -> proc_macro2::TokenSt
     let state_idents = idents_by_states(&packet_stream.states);
     let attrs = packet_stream.attrs;
     let state_attrs = attrs_by_states(&packet_stream.states);
-    let doc = format!("`{}`", packet_stream_ident.to_string());
     quote! {
         #(#attrs)*
-        #[doc = stringify!(#doc)]
         #[allow(dead_code)]
         #[derive(Debug)]
         #vis enum #packet_stream_ident {
