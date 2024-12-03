@@ -1,8 +1,9 @@
 use proc_macro::TokenStream;
+use proc_macro2::TokenTree;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse_macro_input, Attribute, Ident, ItemEnum, Meta, PathArguments, Type, TypePath, Variant,
-    Visibility,
+    parse_macro_input, parse_quote, Attribute, Ident, ItemEnum, Meta, PathArguments, Type,
+    TypePath, Variant, Visibility,
 };
 
 struct Bound {
@@ -49,7 +50,6 @@ pub fn packet_stream(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let server_bound_generated = generate_by_bound(&packet_stream, SERVER_BOUND);
     let main_body_generated = generate_main_enum_body(&packet_stream);
 
-    println!("debug={}", main_body_generated.to_token_stream().to_string());
     quote! {
         #main_body_generated
         #client_bound_generated
@@ -64,8 +64,10 @@ fn generate_main_enum_body(packet_stream: &PacketStream) -> proc_macro2::TokenSt
     let state_idents = idents_by_states(&packet_stream.states);
     let attrs = packet_stream.attrs;
     let state_attrs = attrs_by_states(&packet_stream.states);
+    let comment: TokenTree = parse_quote!(format!("/// `{}`", packet_stream_ident.to_string()));
     quote! {
         #(#attrs)*
+        #comment
         #[allow(dead_code)]
         #[derive(Debug)]
         #vis enum #packet_stream_ident {
