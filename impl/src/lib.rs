@@ -272,7 +272,6 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                 }
             }
 
-    #[cfg(feature = "serialization")]
     impl<'de: #bound_packet_lifetime_without_bracket, #bound_packet_lifetime_without_bracket>
         packetize::DecodePacket<'de, #packet_stream_ident> for #bound_packet_ident #bound_packet_lifetime {
         fn decode_packet<D: serialization::Decoder<'de>>(
@@ -292,7 +291,6 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
         }
     }
 
-    #[cfg(feature = "serialization")]
     impl #bound_packet_lifetime packetize::EncodePacket<#packet_stream_ident> for #bound_packet_ident #bound_packet_lifetime {
         fn encode_packet<E: serialization::Encoder>(
             &self,
