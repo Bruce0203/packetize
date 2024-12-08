@@ -123,7 +123,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
  let state_bound_packet_lifetimes = state_bound_packets.iter().map(|packet| packet.has_lifetime.then_some(quote! {<'a>})).collect::<Vec<_>>();
 
             let packets_enum = quote! {
-                #[cfg_attr(feature = "serialization", derive(serialization::Serializable))]
+                #[derive(serialization::Serializable)]
                 #[derive(Debug)]
                 #repr_attr
                 #vis enum #state_packets_name #state_packet_lifetime {
@@ -242,7 +242,7 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
     quote! {
             #(#state_quotes)*
 
-            #[cfg_attr(feature = "serialization", derive(serialization::Serializable))]
+            #[derive(serialization::Serializable)]
             #[derive(Debug)]
             #vis enum #bound_packet_ident #bound_packet_lifetime {
                 #(#state_packet_names(#state_packet_names #state_lifetimes),)*
