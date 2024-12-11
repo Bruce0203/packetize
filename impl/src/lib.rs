@@ -122,8 +122,13 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
  let state_packet_lifetime = state_bound_packets.iter().any(|packet| packet.has_lifetime).then_some(quote! {<'a>});
  let state_bound_packet_lifetimes = state_bound_packets.iter().map(|packet| packet.has_lifetime.then_some(quote! {<'a>})).collect::<Vec<_>>();
 
+            let serialization_attr = if cfg!(feature = "serialization") {
+                Some(quote! {#[derive(serialization::Serializable)]})
+            } else {
+                None
+            };
             let packets_enum = quote! {
-                #[derive(serialization::Serializable)]
+                #serialization_attr
                 #[derive(Debug)]
                 #repr_attr
                 #vis enum #state_packets_name #state_packet_lifetime {
@@ -238,11 +243,15 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             }
         })
         .collect();
-
-    quote! {
+    let serialization_attr = if cfg!(feature = "serialization") {
+        Some(quote! {#[derive(serialization::Serializable)]})
+    } else {
+        None
+    };
+    let part1 = quote! {
             #(#state_quotes)*
 
-            #[derive(serialization::Serializable)]
+            #serialization_attr
             #[derive(Debug)]
             #vis enum #bound_packet_ident #bound_packet_lifetime {
                 #(#state_packet_names(#state_packet_names #state_lifetimes),)*
@@ -271,7 +280,12 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
                     }
                 }
             }
+    };
 
+    #[cfg(not(feature = "serialization"))]
+    let part2 = quote! {};
+    #[cfg(feature = "serialization")]
+    let part2 = quote! {
     impl<'de: #bound_packet_lifetime_without_bracket, #bound_packet_lifetime_without_bracket>
         packetize::DecodePacket<'de, #packet_stream_ident> for #bound_packet_ident #bound_packet_lifetime {
         fn decode_packet<D: serialization::Decoder<'de>>(
@@ -308,7 +322,11 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
             Ok(())
         }
     }
-        }
+        };
+    quote! {
+        #part1
+        #part2
+    }
 }
 
 fn packet_stream_by_inputs<'a>(item_enum: &'a mut ItemEnum) -> PacketStream<'a> {

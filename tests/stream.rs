@@ -2,7 +2,7 @@
 
 use std::marker::PhantomData;
 
-use packetize::{packet_stream, DecodePacket, Packet};
+use packetize::{packet_stream, DecodePacket, EncodePacket, Packet};
 use serialization::{Encode, Serializable};
 
 #[test]
