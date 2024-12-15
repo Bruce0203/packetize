@@ -27,7 +27,7 @@ license = "MIT"
 [dependencies]
 packetize_derive = { path = "./impl", version = "0.101.0" }
 serde = "1.0.215"
-serialization = { git = "https://github.com/Bruce0203/serialization" }
+serialization = "0.2.2"
 
 [features]
 default = ["std"]

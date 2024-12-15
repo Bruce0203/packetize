@@ -207,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "packetize"
-version = "0.100.0"
+version = "0.101.0"
 dependencies = [
  "divan",
  "packetize_derive",
@@ -218,7 +218,7 @@ dependencies = [
 
 [[package]]
 name = "packetize_derive"
-version = "0.100.0"
+version = "0.101.0"
 dependencies = [
  "proc-macro2",
  "quote",
