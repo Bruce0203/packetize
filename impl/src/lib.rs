@@ -287,15 +287,15 @@ fn generate_by_bound(packet_stream: &PacketStream, bound: Bound) -> proc_macro2:
     #[cfg(feature = "serialization")]
     let part2 = quote! {
     impl<'de: #bound_packet_lifetime_without_bracket, #bound_packet_lifetime_without_bracket>
-        packetize::DecodePacket<'de, #packet_stream_ident> for #bound_packet_ident #bound_packet_lifetime {
-        fn decode_packet<D: serialization::Decoder<'de>>(
+        packetize::DecodePacket<#packet_stream_ident> for #bound_packet_ident #bound_packet_lifetime {
+        fn decode_packet<D: serialization::Decoder>(
             decoder: D,
             state: &mut #packet_stream_ident,
         ) -> Result<Self, D::Error> {
             let result: Self = match state {
                 #(
                 #packet_stream_ident::#state_names =>
-                    <#state_packet_names as serialization::Decode::<'de>>::decode(decoder)?.into(),
+                    <#state_packet_names as serialization::Decode::>::decode_placed(decoder)?.into(),
                 )*
             };
             if let Some(new_state) = <Self as packetize::Packet::<#packet_stream_ident>>::is_changing_state(&result) {

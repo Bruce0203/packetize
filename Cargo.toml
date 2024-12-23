@@ -17,7 +17,7 @@ include = [
 members = ["impl"]
 
 [workspace.package]
-version = "0.101.0"
+version = "0.102.0"
 description = "encode and decode your packet with stream channel"
 edition = "2021"
 author = "Bruce0203 <brucefreedy@gmail.com>"
@@ -25,9 +25,9 @@ repository = "https://github.com/Bruce0203/packetize"
 license = "MIT"
 
 [dependencies]
-packetize_derive = { path = "./impl", version = "0.101.0" }
+packetize_derive = { path = "./impl", version = "0.102.0" }
 serde = "1.0.215"
-serialization = "0.2.2"
+serialization = "0.2.13"
 
 [features]
 default = ["std"]

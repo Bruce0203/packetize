@@ -28,8 +28,8 @@ pub trait EncodePacket<T> {
     }
 }
 
-pub trait DecodePacket<'de, T>: Sized {
-    fn decode_packet<D: serialization::Decoder<'de>>(
+pub trait DecodePacket<T>: Sized {
+    fn decode_packet<D: serialization::Decoder>(
         decoder: D,
         state: &mut T,
     ) -> Result<Self, D::Error>;
